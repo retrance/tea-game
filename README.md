@@ -1,5 +1,7 @@
 # 🍵 大家來找茶 | Tea Quiz (Bilingual)
 
+[Play online / 直接遊玩](https://retrance.github.io/tea-game/)
+
 ---
 
 ## 🇹🇼 中文版說明
