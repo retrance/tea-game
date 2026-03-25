@@ -4,7 +4,7 @@
 
 ---
 
-## 🇹🇼 中文版說明
+## 中文版說明
 
 ### 🌟 動機
 在台灣，LINE、FB 等社群平台常流傳似是而非的健康偏方，甚至虛假新聞。為了響應提升大眾「媒體素養（Media Literacy）」的能力，我創造了這個大字體、易操作的小遊戲，旨在協助長輩守護飲茶健康的同時，也能在潛移默化中建立識別假訊息的能力，讓數位生活更安心。
@@ -16,7 +16,7 @@
 
 ---
 
-## 🇺🇸 English Version
+## English Version
 
 ### 🚀 Motivation
 In Taiwan, social platforms like LINE and Facebook are often flooded with misleading health tips and fake news. To support the initiative of improving "Media Literacy," I build this accessible, large-font small game, to help seniors protect their health while enjoying tea and empower them with the skills to navigate and identify misinformation in today's digital landscape.
