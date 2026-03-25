@@ -34,11 +34,17 @@
         .line-message {
             background-color: #ffffff;
             border-radius: 18px;
-            padding: 24px;
+            padding: 18px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
             position: relative;
             border-left: 8px solid #06c755;
             /* LINE 綠色 */
+        }
+
+        @media (min-width: 768px) {
+            .line-message {
+                padding: 24px;
+            }
         }
 
         body[data-lang="zh"] .line-message::before {
@@ -84,7 +90,7 @@
 <body data-lang="zh" class="min-h-screen flex items-center justify-center p-3 md:p-6 text-gray-800">
 
     <div id="game-container"
-        class="bg-white rounded-3xl shadow-2xl w-full max-w-xl p-6 md:p-8 relative overflow-hidden border border-green-50">
+        class="bg-white rounded-3xl shadow-2xl w-full max-w-xl p-4 md:p-8 relative overflow-hidden border border-green-50">
 
         <div class="flex justify-end mb-4 md:mb-6">
             <!-- 語系切換按鈕，使用正常排版避免手機遮住內容 -->
@@ -95,11 +101,11 @@
         </div>
 
         <!-- 共用頂部狀態區：使用 Body字級 (text-xl) -->
-        <div id="game-header" class="hidden mb-6 fade-in">
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-xl font-bold text-gray-600 bg-gray-100 px-5 py-2 rounded-full" id="progress-text">題
+        <div id="game-header" class="hidden mb-5 md:mb-6 fade-in">
+            <div class="flex justify-between items-center gap-2 mb-4">
+                <span class="text-lg md:text-xl font-bold text-gray-600 bg-gray-100 px-4 md:px-5 py-2 rounded-full" id="progress-text">題
                     1 / 10</span>
-                <span class="text-xl font-bold text-green-800 bg-green-100 px-5 py-2 rounded-full" id="score-text">得分:
+                <span class="text-lg md:text-xl font-bold text-green-800 bg-green-100 px-4 md:px-5 py-2 rounded-full" id="score-text">得分:
                     0</span>
             </div>
 
@@ -145,7 +151,7 @@
                 <div class="line-message">
                     <!-- Text: text-xl -->
                     <div id="question-scroll-box"
-                        class="custom-scroll overflow-y-auto pr-2 text-xl text-gray-800 leading-relaxed font-bold">
+                        class="custom-scroll overflow-y-auto text-xl text-gray-800 leading-relaxed font-bold">
                         <span id="question-text">載入題目中...</span>
                     </div>
                 </div>
@@ -154,12 +160,12 @@
             <!-- 選擇按鈕 (真/假) | text-2xl -->
             <div id="action-buttons" class="grid grid-cols-2 gap-4 mt-auto">
                 <button onclick="checkAnswer(true)"
-                    class="bg-white border-4 border-blue-400 hover:bg-blue-50 text-blue-800 font-black py-6 px-2 rounded-2xl text-2xl shadow-sm transition active:scale-95 flex flex-col items-center justify-center gap-2">
+                    class="bg-white border-4 border-blue-400 hover:bg-blue-50 text-blue-800 font-black py-4 md:py-6 px-2 rounded-2xl text-2xl shadow-sm transition active:scale-95 flex flex-col items-center justify-center gap-2">
                     <span class="text-4xl">⭕</span>
                     <span id="t-btnTrue">真的</span>
                 </button>
                 <button onclick="checkAnswer(false)"
-                    class="bg-white border-4 border-red-400 hover:bg-red-50 text-red-800 font-black py-6 px-2 rounded-2xl text-2xl shadow-sm transition active:scale-95 flex flex-col items-center justify-center gap-2">
+                    class="bg-white border-4 border-red-400 hover:bg-red-50 text-red-800 font-black py-4 md:py-6 px-2 rounded-2xl text-2xl shadow-sm transition active:scale-95 flex flex-col items-center justify-center gap-2">
                     <span class="text-4xl">❌</span>
                     <span id="t-btnFalse">假的</span>
                 </button>
@@ -168,7 +174,7 @@
 
         <!-- 畫面 3: 答案與回饋畫面 | 包含字級：3xl(2級), 2xl(3級), xl(4級) -->
         <div id="screen-feedback" class="fade-in hidden flex flex-col h-full">
-            <div id="feedback-box" class="p-6 rounded-2xl mb-4 custom-scroll overflow-y-auto w-full">
+            <div id="feedback-box" class="p-4 md:p-6 rounded-2xl mb-4 custom-scroll overflow-y-auto w-full">
                 <div class="flex items-center gap-3 mb-4">
                     <span id="feedback-icon" class="text-4xl">✅</span>
                     <!-- Feedback Title: text-3xl -->
@@ -176,7 +182,7 @@
                 </div>
                 <!-- Feedback Explanations Box -->
                 <p id="feedback-explanation-container"
-                    class="mb-5 leading-relaxed bg-white/60 p-4 rounded-xl shadow-sm border border-black/5">
+                    class="mb-5 leading-relaxed">
                     <!-- Exp Title: text-2xl -->
                     <span id="feedback-exp-title" class="font-black block mb-3 text-2xl">解釋標題</span>
                     <!-- Exp Body: text-xl -->
@@ -184,7 +190,7 @@
                 </p>
                 <!-- Source box: text-xl -->
                 <div
-                    class="bg-white/90 p-4 rounded-xl text-xl text-gray-800 border-2 border-dashed border-gray-300 shadow-sm">
+                    class="mt-5 pt-4 text-xl text-gray-800 border-t-2 border-dashed border-gray-300">
                     <span class="font-black text-gray-900" id="t-sourceLabel">🔍 查核來源：</span><span id="feedback-source"
                         class="font-bold text-gray-700"></span>
                 </div>
@@ -209,14 +215,14 @@
             <div class="text-4xl font-black text-green-600 mb-6 drop-shadow-sm" id="final-score">100</div>
 
             <!-- Result Msg: text-xl -->
-            <div class="bg-green-50 p-6 rounded-2xl mb-8 border-2 border-green-200 text-left">
+            <div class="bg-green-50 p-4 md:p-6 rounded-2xl mb-6 md:mb-8 border border-green-200 text-left">
                 <p id="result-message" class="text-xl text-gray-800 leading-relaxed font-bold">
                     評語...
                 </p>
             </div>
 
             <!-- About us panel -->
-            <div class="text-left bg-green-50 p-6 rounded-2xl border-2 border-green-300 shadow-sm mb-8">
+            <div class="text-left bg-green-50 p-4 md:p-6 rounded-2xl border border-green-300 shadow-sm mb-8">
                 <!-- About us title: text-2xl -->
                 <p class="mb-3"><strong class="text-green-800 text-2xl font-black" id="t-aboutTitle">關於我們：</strong>
                 </p>
@@ -576,13 +582,13 @@
                 feedbackIcon.innerText = "🎉";
                 feedbackTitle.innerText = dict.feedbackCorrect;
                 feedbackTitle.className = "text-3xl font-black text-green-700";
-                feedbackBox.className = "p-6 rounded-2xl mb-4 custom-scroll overflow-y-auto w-full bg-green-50 border-2 border-green-300 fade-in";
+                feedbackBox.className = "p-4 md:p-6 rounded-2xl mb-4 custom-scroll overflow-y-auto w-full bg-green-50 border border-green-300 fade-in";
                 feedbackExpTitle.className = "font-black block mb-3 text-2xl text-green-800";
             } else {
                 feedbackIcon.innerText = "😨";
                 feedbackTitle.innerText = dict.feedbackWrong;
                 feedbackTitle.className = "text-3xl font-black text-red-700";
-                feedbackBox.className = "p-6 rounded-2xl mb-4 custom-scroll overflow-y-auto w-full bg-red-50 border-2 border-red-300 fade-in";
+                feedbackBox.className = "p-4 md:p-6 rounded-2xl mb-4 custom-scroll overflow-y-auto w-full bg-red-50 border border-red-300 fade-in";
                 feedbackExpTitle.className = "font-black block mb-3 text-2xl text-red-800";
             }
 
