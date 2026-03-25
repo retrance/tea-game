@@ -81,16 +81,18 @@
     </style>
 </head>
 
-<body data-lang="zh" class="min-h-screen flex items-center justify-center p-3 md:p-6 text-gray-800 relative">
-
-    <!-- 語系切換按鈕，使用字級 text-xl (Body) -->
-    <button onclick="toggleLang()" id="lang-btn"
-        class="absolute top-4 right-4 md:top-8 md:right-8 bg-white/80 hover:bg-white backdrop-blur-sm border-2 border-green-200 text-green-800 font-bold py-2 px-4 rounded-full shadow-sm transition active:scale-95 z-50 text-xl">
-        🌐 English
-    </button>
+<body data-lang="zh" class="min-h-screen flex items-center justify-center p-3 md:p-6 text-gray-800">
 
     <div id="game-container"
         class="bg-white rounded-3xl shadow-2xl w-full max-w-xl p-6 md:p-8 relative overflow-hidden border border-green-50">
+
+        <div class="flex justify-end mb-4 md:mb-6">
+            <!-- 語系切換按鈕，使用正常排版避免手機遮住內容 -->
+            <button onclick="toggleLang()" id="lang-btn"
+                class="bg-white/90 hover:bg-white backdrop-blur-sm border-2 border-green-200 text-green-800 font-bold py-2 px-4 rounded-full shadow-sm transition active:scale-95 text-lg md:text-xl">
+                🌐 English
+            </button>
+        </div>
 
         <!-- 共用頂部狀態區：使用 Body字級 (text-xl) -->
         <div id="game-header" class="hidden mb-6 fade-in">
