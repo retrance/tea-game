@@ -4,295 +4,346 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>健康謠言找茶大考驗</title>
+    <title>健康謠言查核報 - 社論版</title>
+    <meta name="description" content="網路上流傳的健康消息真假難辨？加入【山茗主義】調查員行列，挑戰 10 題高難度茶葉健康謠言查核！">
+    <meta name="author" content="山茗主義 Summit Tea">
+    <!-- Open Graph for Social Sharing -->
+    <meta property="og:title" content="健康謠言查核報 - 社論版">
+    <meta property="og:description" content="你能看穿似是而非的健康謠言嗎？挑戰 10 題高難度查核測驗！🍵">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍵</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Noto+Serif+TC:wght@500;700;900&display=swap"
+        rel="stylesheet">
     <style>
+        :root {
+            --paper-bg: #F4F0EC;
+            --ink-black: #111111;
+            --alert-red: #E34234;
+            --truth-green: #008B45;
+        }
+
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, '微軟正黑體', sans-serif;
-            background-color: #e6f2eb;
-            /* 質感淺茶綠色背景 */
+            font-family: 'Playfair Display', 'Noto Serif TC', serif;
+            background-color: var(--paper-bg);
+            color: var(--ink-black);
             -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+            background-image: radial-gradient(var(--ink-black) 1px, transparent 1px);
+            background-size: 30px 30px;
+            background-position: 0 0;
+            background-color: var(--paper-bg);
         }
 
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
+        /* Brutalist Styles */
+        .brutal-border {
+            border: 3px solid var(--ink-black);
+            background: var(--paper-bg);
+            border-radius: 0 !important;
         }
 
-        @keyframes fadeIn {
+        .brutal-shadow {
+            box-shadow: 8px 8px 0px 0px var(--ink-black);
+            transition: all 0.2s ease;
+        }
+
+        .brutal-button {
+            border: 3px solid var(--ink-black);
+            background: white;
+            font-family: 'Space Mono', 'Noto Serif TC', monospace, serif;
+            text-transform: uppercase;
+            font-weight: 700;
+            border-radius: 0;
+            box-shadow: 6px 6px 0px 0px var(--ink-black) !important;
+            transition: all 0.1s ease;
+            position: relative;
+        }
+
+        .brutal-button:active {
+            transform: translate(6px, 6px);
+            box-shadow: 0px 0px 0px 0px var(--ink-black) !important;
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .clipping-box {
+            border-top: 5px solid var(--ink-black);
+            border-bottom: 5px solid var(--ink-black);
+            padding: 20px 0;
+            position: relative;
+            background: url('data:image/svg+xml,%3Csvg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M1 1L9 9M9 1L1 9" stroke="black" stroke-opacity="0.05" stroke-width="0.5"/%3E%3C/svg%3E');
+        }
+
+        .mono-tag {
+            font-family: 'Space Mono', monospace;
+            background: var(--ink-black);
+            color: var(--paper-bg);
+            padding: 4px 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+        }
+
+        /* Animations */
+        .slide-cut {
+            animation: slideCut 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+            opacity: 0;
+            transform: translateX(-40px);
+        }
+
+        .delay-100 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-200 {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes slideCut {
             from {
                 opacity: 0;
-                transform: translateY(15px);
+                transform: translateX(-40px);
+                clip-path: polygon(0 0, 0 100%, 0 100%, 0 0);
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateX(0);
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
             }
         }
 
-        /* 模擬 LINE 訊息對話框的樣式 */
-        .line-message {
-            background-color: #ffffff;
-            border-radius: 18px;
-            padding: 26px 18px 18px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-            position: relative;
-            border-left: 8px solid #06c755;
-            /* LINE 綠色 */
-        }
-
-        @media (min-width: 768px) {
-            .line-message {
-                padding: 32px 24px 24px;
-            }
-        }
-
-        body[data-lang="zh"] .line-message::before {
-            content: "轉傳";
-            position: absolute;
-            top: -16px;
-            left: 12px;
-            background-color: #06c755;
-            color: white;
-            font-size: 20px;
-            /* 對齊內文字級 (Body / text-xl) */
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-weight: bold;
-        }
-
-        body[data-lang="en"] .line-message::before {
-            content: "Forwarded";
-            position: absolute;
-            top: -16px;
-            left: 12px;
-            background-color: #06c755;
-            color: white;
-            font-size: 20px;
-            /* 對齊內文字級 (Body / text-xl) */
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-weight: bold;
-        }
-
-        /* 自訂滾動條，讓長文好滑 */
         .custom-scroll::-webkit-scrollbar {
             width: 8px;
         }
 
         .custom-scroll::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 10px;
+            background-color: var(--ink-black);
+            border: 2px solid var(--paper-bg);
+        }
+
+        /* High contrast selection */
+        ::selection {
+            background: var(--alert-red);
+            color: white;
         }
     </style>
 </head>
 
-<body data-lang="zh" class="min-h-screen flex items-center justify-center p-3 md:p-6 text-gray-800">
+<body data-lang="zh" class="min-h-screen flex items-start justify-center p-3 md:p-6 lg:p-10 pt-6 md:pt-16">
 
     <div id="game-container"
-        class="bg-white rounded-3xl shadow-2xl w-full max-w-xl p-4 md:p-8 relative overflow-hidden border border-green-50">
+        class="brutal-border brutal-shadow w-full max-w-3xl p-6 md:p-10 relative overflow-hidden flex flex-col min-h-[80vh]">
 
-        <div class="flex justify-end mb-4 md:mb-6">
-            <!-- 語系切換按鈕，使用正常排版避免手機遮住內容 -->
-            <button onclick="toggleLang()" id="lang-btn"
-                class="bg-white/90 hover:bg-white backdrop-blur-sm border-2 border-green-200 text-green-800 font-bold py-2 px-4 rounded-full shadow-sm transition active:scale-95 text-lg md:text-xl">
-                🌐 English
+        <!-- Header / Masthead -->
+        <header class="border-b-[4px] border-black pb-4 mb-6 relative slide-cut z-10">
+            <div class="flex justify-between items-start mb-2">
+                <div class="mono-tag text-xs md:text-sm" id="t-issue">ISSUE No.1</div>
+                <button onclick="toggleLang()" id="lang-btn"
+                    class="font-mono text-xs md:text-sm font-bold uppercase underline hover:bg-black hover:text-white px-2 py-1 transition-colors border border-transparent hover:border-black relative z-20 bg-[var(--paper-bg)]">
+                    ENG (Switch)
+                </button>
+            </div>
+            <!-- pr-16 避免與右邊 icon 疊到 -->
+            <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter pr-16" id="header-title">THE TRUTH
+                INDEX.</h1>
+            <div class="absolute right-0 bottom-4 w-12 h-12 md:w-16 md:h-16 border-[3px] md:border-4 border-black rounded-full text-[var(--paper-bg)] bg-[var(--ink-black)] flex items-center justify-center font-bold font-mono text-xl md:text-2xl"
+                id="masthead-icon">✓</div>
+        </header>
+
+        <!-- Dynamic Header Info row -->
+        <div id="game-header"
+            class="hidden font-mono text-xs md:text-sm border-b-2 border-black pb-3 mb-6 slide-cut delay-100">
+            <div class="flex justify-between font-bold uppercase">
+                <div class="flex gap-4">
+                    <span id="progress-text">PAGE 1/10</span>
+                </div>
+                <span id="score-text">SCORE: 0</span>
+            </div>
+            <div class="w-full bg-white border-2 border-black h-3 mt-2">
+                <div id="progress-bar" class="bg-black h-full transition-all duration-300" style="width: 10%"></div>
+            </div>
+        </div>
+
+        <!-- Screen 1: Start -->
+        <div id="screen-start" class="flex-1 flex flex-col justify-center slide-cut delay-100 block">
+            <h2 class="text-3xl md:text-5xl font-black mb-2 uppercase" id="t-title1">健康謠言檔案局</h2>
+            <h3 class="text-2xl md:text-3xl font-bold bg-black text-white inline-block px-3 py-1 mb-8" id="t-title2">
+                高難度查核專區</h3>
+
+            <p id="t-intro"
+                class="text-lg md:text-xl leading-relaxed mb-10 font-bold max-w-2xl border-l-[6px] border-[#E34234] pl-4">
+                網路上常傳各種引經據典的「喝茶健康消息」，看起來都超逼真！<br><br>
+                這 10 題都是從各大群組真實擷取的內容（真假摻半），身為調查員，你能看穿這些似是而非的偽科學陷阱嗎？
+            </p>
+
+            <button onclick="startGame()" id="t-startBtn"
+                class="brutal-button py-4 px-4 md:px-8 text-xl w-full md:w-auto bg-black text-white whitespace-nowrap">
+                START INVESTIGATION ↳
             </button>
         </div>
 
-        <!-- 共用頂部狀態區：使用 Body字級 (text-xl) -->
-        <div id="game-header" class="hidden mb-5 md:mb-6 fade-in">
-            <div class="flex justify-between items-center gap-2 mb-4">
-                <span class="text-lg md:text-xl font-bold text-gray-600 bg-gray-100 px-4 md:px-5 py-2 rounded-full" id="progress-text">題
-                    1 / 10</span>
-                <span class="text-lg md:text-xl font-bold text-green-800 bg-green-100 px-4 md:px-5 py-2 rounded-full" id="score-text">得分:
-                    0</span>
+        <!-- Screen 2: Quiz -->
+        <div id="screen-quiz" class="hidden flex-1 flex-col relative pb-3">
+            <!-- Added padding bottom manually for shadow space -->
+            <div class="mb-4">
+                <span class="mono-tag text-xs md:text-sm" id="t-questionPrefix">Intercepted Data:</span>
             </div>
 
-            <div class="w-full bg-gray-200 rounded-full h-4">
-                <div id="progress-bar" class="bg-green-500 h-4 rounded-full transition-all duration-300"
-                    style="width: 10%"></div>
-            </div>
-        </div>
-
-        <!-- 畫面 1: 歡迎畫面 | 包含字級：4xl(1級), 2xl(3級), xl(4級) -->
-        <div id="screen-start" class="text-center fade-in block">
-            <div class="mb-4 flex justify-center">
-                <div class="bg-green-100 p-4 rounded-full text-6xl">
-                    🍵
+            <div class="clipping-box flex-1 mb-8 flex flex-col justify-center slide-cut delay-100">
+                <div id="question-scroll-box"
+                    class="custom-scroll overflow-y-auto max-h-[40vh] text-lg md:text-xl leading-relaxed font-bold px-2">
+                    <span id="question-text">Loading data...</span>
                 </div>
             </div>
-            <!-- Title: text-4xl -->
-            <h1 class="text-4xl font-black text-green-800 mb-6 tracking-wide leading-snug">
-                <span id="t-title1">大家來找茶</span><br>
-                <span id="t-title2">高難度實戰版</span>
-            </h1>
-            <!-- Intro: text-xl -->
-            <p id="t-intro" class="text-xl text-gray-700 mb-8 leading-relaxed text-left font-bold">
-                網路上常傳各種引經據典的「喝茶健康消息」，看起來都超逼真！<br><br>
-                這 10 題都是從各大群組真實擷取的內容（真假摻半），你能看穿這些似是而非的健康陷阱嗎？
-            </p>
-            <!-- Button: text-2xl -->
-            <button onclick="startGame()"
-                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 px-8 rounded-2xl text-2xl shadow-lg transition transform hover:scale-[1.02] active:scale-95"
-                id="t-startBtn">
-                開始挑戰 🚀
+
+            <!-- Added pb-2 to prevent shadow clipping -->
+            <div id="action-buttons" class="grid grid-cols-2 gap-4 md:gap-6 mt-auto slide-cut delay-200 pb-2">
+                <button onclick="checkAnswer(true)"
+                    class="brutal-button py-6 border-[#008B45] text-[#008B45] hover:bg-[#008B45] hover:text-white flex flex-col items-center justify-center group">
+                    <span id="t-btnTrue" class="text-2xl md:text-3xl font-serif font-black">真的</span>
+                </button>
+                <button onclick="checkAnswer(false)"
+                    class="brutal-button py-6 border-[#E34234] text-[#E34234] hover:bg-[#E34234] hover:text-white flex flex-col items-center justify-center group">
+                    <span id="t-btnFalse" class="text-2xl md:text-3xl font-serif font-black">假的</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Screen 3: Feedback -->
+        <div id="screen-feedback" class="hidden flex-1 flex-col pb-2">
+            <div id="feedback-box"
+                class="border-[4px] border-black p-6 md:p-8 shrink-0 mb-6 custom-scroll overflow-y-auto w-full flex-1 bg-white">
+                <div class="flex items-start gap-4 mb-6 border-b-2 border-black pb-4">
+                    <span id="feedback-icon"
+                        class="text-4xl bg-black text-white w-12 h-12 flex justify-center items-center rounded-none font-mono">!</span>
+                    <h3 id="feedback-title"
+                        class="text-3xl md:text-5xl font-black uppercase tracking-tighter self-center">VERIFIED</h3>
+                </div>
+
+                <div id="feedback-explanation-container" class="mb-6">
+                    <span id="feedback-exp-title"
+                        class="font-black bg-black text-white px-2 py-1 block mb-4 text-lg md:text-xl mt-2 w-fit">解釋標題</span>
+                    <div id="feedback-exp-body" class="font-serif text-lg md:text-xl leading-relaxed font-bold">解釋內容...
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t-2 border-dashed border-black mt-4 font-mono text-xs md:text-sm">
+                    <span class="font-bold underline" id="t-sourceLabel">SOURCE REF:</span>
+                    <div id="feedback-source" class="mt-2 text-black font-bold break-words pr-4"></div>
+                </div>
+            </div>
+
+            <button onclick="nextQuestion()" id="t-nextBtn"
+                class="brutal-button py-5 px-4 text-xl w-full bg-black text-white whitespace-nowrap">
+                VERIFY NEXT RECORD ↳
             </button>
         </div>
 
-        <!-- 畫面 2: 測驗畫面 | 包含字級：2xl(3級), xl(4級) -->
-        <div id="screen-quiz" class="fade-in hidden flex flex-col h-full">
-            <!-- 題目區 (模擬 LINE 轉傳訊息) -->
-            <div class="mb-6">
-                <!-- prefix: text-2xl -->
-                <h2 class="text-2xl text-gray-700 mb-5 ml-2 flex items-center gap-2 font-bold">
-                    <span>💬</span> <span id="t-questionPrefix">收到了一則群組訊息：</span>
-                </h2>
-                <div class="line-message">
-                    <!-- Text: text-xl -->
-                    <div id="question-scroll-box"
-                        class="custom-scroll overflow-y-auto text-xl text-gray-800 leading-relaxed font-bold">
-                        <span id="question-text">載入題目中...</span>
+        <!-- Screen 4: Result -->
+        <div id="screen-result" class="hidden flex-1 flex-col">
+            <div class="border-[4px] border-black p-6 bg-white mb-6 slide-cut relative overflow-hidden">
+                <div class="mono-tag text-xs md:text-sm mb-4 absolute top-0 left-0">FINAL REPORT</div>
+
+                <div
+                    class="flex flex-col md:flex-row items-start md:items-center justify-between mt-8 border-b-4 border-black pb-6 gap-2 md:gap-6">
+                    <div class="text-left w-full">
+                        <h1 class="text-3xl md:text-5xl font-black uppercase mb-1 tracking-tighter" id="t-resultTitle">
+                            測驗結束</h1>
+                        <p class="font-mono font-bold text-gray-500 uppercase text-xs md:text-sm" id="t-resultSubtitle">
+                            Total Score</p>
+                    </div>
+                    <div class="text-[5rem] md:text-9xl font-black tracking-tighter self-end md:self-auto leading-none mt-2 md:mt-0"
+                        id="final-score">100</div>
+                </div>
+
+                <div class="py-6 border-b-4 border-black">
+                    <p id="result-message" class="text-lg md:text-xl font-bold leading-relaxed">評語...</p>
+                </div>
+
+                <div class="py-6 font-mono">
+                    <p class="font-black uppercase text-lg md:text-xl mb-2" id="t-aboutTitle">About Us</p>
+                    <div id="t-aboutText" class="text-sm md:text-base font-bold text-gray-700">
+                        這款小測驗是由【山茗主義】特別設計！我們在竹北的茶空間推廣茶與茶席美學已有九年。<br>下次收到驚悚健康消息，請先查證再轉發。🍵
                     </div>
                 </div>
             </div>
 
-            <!-- 選擇按鈕 (真/假) | text-2xl -->
-            <div id="action-buttons" class="grid grid-cols-2 gap-4 mt-auto">
-                <button onclick="checkAnswer(true)"
-                    class="bg-white border-4 border-blue-400 hover:bg-blue-50 text-blue-800 font-black py-4 md:py-6 px-2 rounded-2xl text-2xl shadow-sm transition active:scale-95 flex flex-col items-center justify-center gap-2">
-                    <span class="text-4xl">⭕</span>
-                    <span id="t-btnTrue">真的</span>
-                </button>
-                <button onclick="checkAnswer(false)"
-                    class="bg-white border-4 border-red-400 hover:bg-red-50 text-red-800 font-black py-4 md:py-6 px-2 rounded-2xl text-2xl shadow-sm transition active:scale-95 flex flex-col items-center justify-center gap-2">
-                    <span class="text-4xl">❌</span>
-                    <span id="t-btnFalse">假的</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- 畫面 3: 答案與回饋畫面 | 包含字級：3xl(2級), 2xl(3級), xl(4級) -->
-        <div id="screen-feedback" class="fade-in hidden flex flex-col h-full">
-            <div id="feedback-box" class="p-4 md:p-6 rounded-2xl mb-4 custom-scroll overflow-y-auto w-full">
-                <div class="flex items-center gap-3 mb-4">
-                    <span id="feedback-icon" class="text-4xl">✅</span>
-                    <!-- Feedback Title: text-3xl -->
-                    <h3 id="feedback-title" class="text-3xl font-black">選擇正確！</h3>
-                </div>
-                <!-- Feedback Explanations Box -->
-                <p id="feedback-explanation-container"
-                    class="mb-5 leading-relaxed">
-                    <!-- Exp Title: text-2xl -->
-                    <span id="feedback-exp-title" class="font-black block mb-3 text-2xl">解釋標題</span>
-                    <!-- Exp Body: text-xl -->
-                    <span id="feedback-exp-body" class="text-gray-800 font-bold text-xl">解釋內容...</span>
-                </p>
-                <!-- Source box: text-xl -->
-                <div
-                    class="mt-5 pt-4 text-xl text-gray-800 border-t-2 border-dashed border-gray-300">
-                    <span class="font-black text-gray-900" id="t-sourceLabel">🔍 查核來源：</span><span id="feedback-source"
-                        class="font-bold text-gray-700"></span>
-                </div>
-            </div>
-
-            <!-- Next button: text-2xl -->
-            <button onclick="nextQuestion()"
-                class="w-full mt-auto bg-gray-800 hover:bg-gray-900 text-white font-bold py-5 px-6 rounded-2xl text-2xl shadow-md transition active:scale-95"
-                id="t-nextBtn">
-                繼續下一題 ➡️
-            </button>
-        </div>
-
-        <!-- 畫面 4: 結果畫面 | 包含字級：4xl(1級), 2xl(3級), xl(4級) -->
-        <div id="screen-result" class="text-center fade-in hidden">
-            <div id="result-emoji" class="text-6xl mb-4 mt-2">🏆</div>
-            <!-- Result Title: text-4xl -->
-            <h1 class="text-4xl font-black text-green-800 mb-2" id="t-resultTitle">測驗完成！</h1>
-            <!-- Result Subtitle: text-xl -->
-            <p class="text-xl font-bold text-gray-600 mb-2" id="t-resultSubtitle">你的得分是</p>
-            <!-- Final Score: text-4xl -->
-            <div class="text-4xl font-black text-green-600 mb-6 drop-shadow-sm" id="final-score">100</div>
-
-            <!-- Result Msg: text-xl -->
-            <div class="bg-green-50 p-4 md:p-6 rounded-2xl mb-6 md:mb-8 border border-green-200 text-left">
-                <p id="result-message" class="text-xl text-gray-800 leading-relaxed font-bold">
-                    評語...
-                </p>
-            </div>
-
-            <!-- About us panel -->
-            <div class="text-left bg-green-50 p-4 md:p-6 rounded-2xl border border-green-300 shadow-sm mb-8">
-                <!-- About us title: text-2xl -->
-                <p class="mb-3"><strong class="text-green-800 text-2xl font-black" id="t-aboutTitle">關於我們：</strong>
-                </p>
-                <!-- About us body: text-xl -->
-                <span id="t-aboutText" class="text-xl text-gray-800 font-bold leading-relaxed">
-                    這款小測驗是由【山茗主義】特別設計！我們在竹北的山茗主義茶空間推廣茶與茶席美學已有九年。<br><br>下次收到驚悚的健康消息，記得先查證再轉發喔~ 想喝杯好茶，歡迎來找我們聊聊！🍵
-                </span>
-            </div>
-
-            <!-- Retry button: text-2xl -->
-            <button onclick="location.reload()"
-                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 px-8 rounded-2xl text-2xl shadow-lg transition active:scale-95"
-                id="t-retryBtn">
-                🔄 再挑戰一次
+            <button onclick="restartGame()" id="t-retryBtn"
+                class="brutal-button py-5 px-4 text-xl w-full bg-black text-white slide-cut delay-200 mt-auto whitespace-nowrap">
+                RESTART INVESTIGATION ↺
             </button>
         </div>
 
     </div>
 
+    <!-- The exact original logic script with minor DOM updates -->
     <script>
         const i18n = {
             zh: {
-                title1: "大家來找茶",
-                title2: "高難度實戰版",
-                intro: "網路上常傳各種引經據典的「喝茶健康消息」，看起來都超逼真！<br><br>這 10 題都是從各大群組真實擷取的內容（真假摻半），你能看穿這些似是而非的健康陷阱嗎？",
-                startBtn: "開始挑戰 🚀",
-                questionPrefix: "收到了一則群組訊息：",
+                issue: "第 1 期",
+                mainTitle: "真相查核報",
+                title1: "健康謠言檔案局",
+                title2: "高難度查核專區",
+                intro: "網路上常傳各種引經據典的「喝茶健康消息」，看起來都超逼真！<br><br>這 10 題都是從各大群組真實擷取的內容（真假摻半），身為調查員，你能看穿這些似是而非的偽科學陷阱嗎？",
+                startBtn: "開始調查 ↳",
+                questionPrefix: "攔截資料片段：",
                 btnTrue: "真的",
                 btnFalse: "假的",
-                sourceLabel: "🔍 查核來源：",
-                nextBtn: "繼續下一題 ➡️",
-                resultTitle: "測驗完成！",
-                resultSubtitle: "你的得分是",
-                aboutTitle: "關於我們：",
-                aboutText: "這款小測驗是由【山茗主義】特別設計！我們在竹北的山茗主義茶空間推廣茶與茶席美學已有九年。<br><br>下次收到驚悚的健康消息，記得先查證再轉發喔~ 想喝杯好茶，歡迎來找我們聊聊！🍵",
-                retryBtn: "🔄 再挑戰一次",
-                progressText: (current, total) => `第 ${current} / ${total} 題`,
-                scoreText: (score) => `得分: ${score}`,
-                feedbackCorrect: "太敏銳了，答對囉！",
-                feedbackWrong: "哎呀，被騙到了！",
-                resultPerfect: `完美滿分！你根本就是反詐大師吧！<br>那些移花接木的數據完全唬不了你，請務必把這個好成績發到群組炫耀一下！`,
-                resultGood: `表現非常好！你具備了紮實的科學與品茶觀念。<br>只有少數幾題把國外醫學期刊東拼西湊的魔王題太狡猾了，但你已經勝過90%的網友！`,
-                resultTryAgain: `這些題目真的超級難對吧？<br>網路上許多假新聞都故意引用「醫學雜誌」或「國外大學」來包裝。沒關係，透過這次測驗，你已經成功升級了健康識讀能力！`,
-                langToggle: "🌐 English",
-                sourceLinkText: "✨ 點此查看原始查核報告"
+                sourceLabel: "SOURCE REF / 來源：",
+                nextBtn: "審查下一份資料 ↳",
+                viewResult: "查看結果 ↳",
+                resultTitle: "審查完畢",
+                resultSubtitle: "最終評分",
+                aboutTitle: "ABOUT AUTHOR",
+                aboutText: "這款小遊戲由<a href='https://www.facebook.com/SummitTeaTW' target='_blank' class='text-black underline hover:bg-black hover:text-white transition-colors px-1'>【山茗主義】</a>製作，我們在竹北推廣茶文化與茶席美學已有九年。<br><br>下次收到難辨真假的健康消息，記得先查證再轉發喔！🍵",
+                retryBtn: "重新調查 ↺",
+                progressText: (current, total) => `檔案 ${current} / ${total}`,
+                scoreText: (score) => `積分: ${score}`,
+                feedbackCorrect: "審查正確",
+                feedbackWrong: "判斷失誤",
+                resultPerfect: `完美無瑕！你具備了報社總編輯等級的闢謠敏銳度。<br>這些移花接木的數據完全唬不了你！`,
+                resultGood: `表現優良！你具備了紮實的科學查核觀念。<br>只有少數幾題偽裝極深的魔王題騙過了你，但你已比九成的人清醒！`,
+                resultTryAgain: `這次的資料偽裝得太好了對吧？<br>網路上許多假新聞都故意引用「醫學雜誌」來增添權威感。透過這次調查，你已經成功升級了防禦力！`,
+                langToggle: "SWITCH TO ENG",
+                sourceLinkText: "[查閱原件]"
             },
             en: {
-                title1: "Tea Truth Check",
-                title2: "Advanced Challenge",
-                intro: "The internet is full of \"healthy tea habits\" that look incredibly real!<br><br>These 10 questions are real messages forwarded in group chats (some true, some false). As a tea lover, can you spot the health traps?",
-                startBtn: "Start Challenge 🚀",
-                questionPrefix: "Forwarded Message:",
-                btnTrue: "It's True",
-                btnFalse: "It's False",
-                sourceLabel: "🔍 Fact-Check Source: ",
-                nextBtn: "Next Question ➡️",
-                resultTitle: "Quiz Complete!",
-                resultSubtitle: "Your Tea Mastery Score is",
-                aboutTitle: "About Us:",
-                aboutText: "This quiz is specially designed by <strong class=\"text-gray-900 text-2xl\">[Summit Tea]</strong>! We run a tea room in Zhubei, Taiwan, promoting authentic tea culture for 9 years.<br><br>Next time you receive a shocking health rumor, remember to fact-check first; and if you want a good cup of tea, come chat with us! 🍵",
-                retryBtn: "🔄 Try Again",
-                progressText: (current, total) => `Question ${current}/${total}`,
-                scoreText: (score) => `Score: ${score}`,
-                feedbackCorrect: "Sharp! You're right!",
-                feedbackWrong: "Oops, you got tricked!",
-                resultPerfect: `Perfect score! You are a <span class="text-green-700 text-2xl">Tea Master</span> at dodging scams!<br>Those fabricated data couldn't fool you at all. Be sure to show off this great result to your friends!`,
-                resultGood: `Great job! You have solid scientific and tea concepts.<br>Only a few tricky questions about foreign medical journals caught you, but you've already beaten 90% of netizens!`,
-                resultTryAgain: `This was a really tough quiz, wasn't it?<br>Many fake news deliberately cite "medical journals" or "foreign universities" to look credible. No worries, through this quiz, you've successfully upgraded your health literacy!`,
-                langToggle: "🌐 中文",
-                sourceLinkText: "✨ Click here to view the original fact-check report"
+                issue: "ISSUE No.1",
+                mainTitle: "THE TRUTH INDEX.",
+                title1: "Rumor Archives",
+                title2: "Hardcore Checking",
+                intro: "The internet is full of \"healthy tea habits\" citing fake sources!<br><br>These 10 interrogations are real messages from group chats. As an investigator, can you spot the pseudoscientific traps?",
+                startBtn: "START INVESTIGATION ↳",
+                questionPrefix: "INTERCEPTED DATA:",
+                btnTrue: "TRUE",
+                btnFalse: "FALSE",
+                sourceLabel: "SOURCE REF: ",
+                nextBtn: "VERIFY NEXT RECORD ↳",
+                viewResult: "VIEW FINAL REPORT ↳",
+                resultTitle: "AUDIT COMPLETE",
+                resultSubtitle: "Total Score",
+                aboutTitle: "ABOUT AUTHOR",
+                aboutText: "This quiz is designed by <a href='https://www.facebook.com/SummitTeaTW' target='_blank' class='text-black underline hover:bg-black hover:text-white transition-colors px-1'>[Summit Tea]</a>! We promote tea aesthetics in Taiwan for 9 years.<br><br>Always fact-check before forwarding shocking health rumors! 🍵",
+                retryBtn: "RESTART INVESTIGATION ↺",
+                progressText: (current, total) => `FILE ${current}/${total}`,
+                scoreText: (score) => `SCORE: ${score}`,
+                feedbackCorrect: "VERIFIED VALID",
+                feedbackWrong: "JUDGMENT ERROR",
+                resultPerfect: `Flawless execution! You are an absolute master at dodging misinformation.`,
+                resultGood: `Excellent work! You possess solid scientific skepticism.<br>Only a few highly deceptive files caught you off guard.`,
+                resultTryAgain: `These were tough forgeries, weren't they?<br>Through this audit, you've significantly upgraded your media literacy!`,
+                langToggle: "切換為中文",
+                sourceLinkText: "[VIEW ORIGINAL]"
             }
         };
 
@@ -452,16 +503,15 @@
         const feedbackSource = document.getElementById('feedback-source');
         const feedbackBox = document.getElementById('feedback-box');
 
-        
         function formatQuestionText(text) {
             let formatted = text.replace(/\n/g, '<br>');
-            formatted = formatted.replace(/(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif))/gi, '<img src="$1" class="w-full rounded-2xl mt-4 border border-gray-200 shadow-md block object-contain" alt="附圖">');
+            formatted = formatted.replace(/(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif))/gi, '<div class="border-[4px] border-black mt-4 p-1 fade-in-up"><img src="$1" class="w-full grayscale hover:grayscale-0 transition-all block object-contain" alt="Evidence"></div>');
             return formatted;
         }
 
         function formatSourceText(text, lang) {
             const linkText = i18n[lang].sourceLinkText;
-            return text.replace(/(https?:\/\/[^\s]+)/gi, ` <a href="$1" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-black break-words block mt-2">${linkText}</a>`);
+            return text.replace(/(https?:\/\/[^\s]+)/gi, `<a href="$1" target="_blank" class="text-black bg-yellow-200 px-1 hover:bg-black hover:text-white transition-colors underline break-words inline">${linkText}</a>`);
         }
 
         function toggleLang() {
@@ -470,19 +520,34 @@
             updateUILanguage();
         }
 
+        function retriggerAnimations() {
+            const cuts = document.querySelectorAll('.slide-cut');
+            cuts.forEach(el => {
+                el.style.animation = 'none';
+                void el.offsetWidth;
+                el.style.animation = null;
+            });
+        }
+
         function updateUILanguage() {
             const dict = i18n[currentLang];
 
-            // Static text updates
+            document.getElementById('header-title').innerText = dict.mainTitle;
+            document.getElementById('t-issue').innerText = dict.issue;
+
             document.getElementById('t-title1').innerText = dict.title1;
             document.getElementById('t-title2').innerText = dict.title2;
             document.getElementById('t-intro').innerHTML = dict.intro;
             document.getElementById('t-startBtn').innerText = dict.startBtn;
-            document.getElementById('t-questionPrefix').innerText = dict.questionPrefix;
             document.getElementById('t-btnTrue').innerText = dict.btnTrue;
             document.getElementById('t-btnFalse').innerText = dict.btnFalse;
+            document.getElementById('t-questionPrefix').innerText = dict.questionPrefix;
             document.getElementById('t-sourceLabel').innerText = dict.sourceLabel;
-            document.getElementById('t-nextBtn').innerText = dict.nextBtn;
+
+            // Check if it's the last question to update button text
+            const isLast = (currentIndex === questionsData.length - 1);
+            document.getElementById('t-nextBtn').innerText = isLast ? dict.viewResult : dict.nextBtn;
+
             document.getElementById('t-resultTitle').innerText = dict.resultTitle;
             document.getElementById('t-resultSubtitle').innerText = dict.resultSubtitle;
             document.getElementById('t-aboutTitle').innerText = dict.aboutTitle;
@@ -490,44 +555,34 @@
             document.getElementById('t-retryBtn').innerText = dict.retryBtn;
             document.getElementById('lang-btn').innerText = dict.langToggle;
 
-            // Header state updates
             if (isQuizStarted) {
                 progressText.innerText = dict.progressText(currentIndex + 1, questionsData.length);
                 scoreText.innerText = dict.scoreText(score * 10);
             }
 
-            // Current Question and Feedback updates
             if (isQuizStarted && screenResult.classList.contains('hidden')) {
                 const q = questionsData[currentIndex];
                 questionText.innerHTML = formatQuestionText(q[currentLang].text);
 
                 if (!screenFeedback.classList.contains('hidden')) {
-                    // Update feedback if it's currently showing
                     let expParts = q[currentLang].explanation.split('\n');
                     let expTitle = expParts[0];
                     let expBody = expParts.slice(1).join('<br>');
-                    const isCorrect = feedbackTitle.classList.contains('text-green-700');
+                    const isCorrect = feedbackTitle.innerText === i18n['zh'].feedbackCorrect || feedbackTitle.innerText === i18n['en'].feedbackCorrect;
 
                     feedbackTitle.innerText = isCorrect ? dict.feedbackCorrect : dict.feedbackWrong;
                     feedbackExpTitle.innerText = expTitle;
                     feedbackExpBody.innerHTML = expBody;
-
-                    feedbackExpTitle.className = `font-black block mb-3 text-2xl ${isCorrect ? 'text-green-800' : 'text-red-800'}`;
                     feedbackSource.innerHTML = formatSourceText(q[currentLang].source, currentLang);
                 }
             }
 
-            // Result screen updates
             if (!screenResult.classList.contains('hidden')) {
                 const finalScore = score * 10;
                 const resultMessage = document.getElementById('result-message');
-                if (finalScore === 100) {
-                    resultMessage.innerHTML = dict.resultPerfect;
-                } else if (finalScore >= 70) {
-                    resultMessage.innerHTML = dict.resultGood;
-                } else {
-                    resultMessage.innerHTML = dict.resultTryAgain;
-                }
+                if (finalScore === 100) resultMessage.innerHTML = dict.resultPerfect;
+                else if (finalScore >= 70) resultMessage.innerHTML = dict.resultGood;
+                else resultMessage.innerHTML = dict.resultTryAgain;
             }
         }
 
@@ -543,15 +598,16 @@
             currentIndex = 0;
             score = 0;
             isQuizStarted = true;
+            screenStart.classList.remove('block');
             screenStart.classList.add('hidden');
             gameHeader.classList.remove('hidden');
+            document.getElementById('masthead-icon').classList.add('hidden');
             renderQuestion();
         }
 
         function renderQuestion() {
             const q = questionsData[currentIndex];
-            let formattedText = formatQuestionText(q[currentLang].text);
-            questionText.innerHTML = formattedText;
+            questionText.innerHTML = formatQuestionText(q[currentLang].text);
 
             const dict = i18n[currentLang];
             progressText.innerText = dict.progressText(currentIndex + 1, questionsData.length);
@@ -559,9 +615,14 @@
             scoreText.innerText = dict.scoreText(score * 10);
 
             screenFeedback.classList.add('hidden');
-            screenQuiz.classList.remove('hidden');
 
-            document.getElementById('question-scroll-box').scrollTop = 0;
+            screenQuiz.classList.remove('hidden');
+            screenQuiz.classList.add('flex');
+
+            retriggerAnimations();
+
+            const scrollBox = document.getElementById('question-scroll-box');
+            if (scrollBox) scrollBox.scrollTop = 0;
         }
 
         function checkAnswer(userChoice) {
@@ -570,7 +631,15 @@
             const dict = i18n[currentLang];
 
             screenQuiz.classList.add('hidden');
+            screenQuiz.classList.remove('flex');
+
             screenFeedback.classList.remove('hidden');
+            screenFeedback.classList.add('flex');
+
+            retriggerAnimations();
+            
+            // Refresh labels (e.g., set 'View Results' if it's the last question)
+            updateUILanguage();
 
             let expParts = q[currentLang].explanation.split('\n');
             let expTitle = expParts[0];
@@ -579,17 +648,17 @@
             if (isCorrect) {
                 score++;
                 scoreText.innerText = dict.scoreText(score * 10);
-                feedbackIcon.innerText = "🎉";
+                feedbackIcon.innerText = "✓";
                 feedbackTitle.innerText = dict.feedbackCorrect;
-                feedbackTitle.className = "text-3xl font-black text-green-700";
-                feedbackBox.className = "p-4 md:p-6 rounded-2xl mb-4 custom-scroll overflow-y-auto w-full bg-green-50 border border-green-300 fade-in";
-                feedbackExpTitle.className = "font-black block mb-3 text-2xl text-green-800";
+                feedbackTitle.className = "text-3xl md:text-5xl font-black uppercase tracking-tighter text-[#008B45]";
+                feedbackBox.className = "border-[4px] border-[#008B45] bg-[#f0fdf4] p-6 md:p-8 shrink-0 mb-6 custom-scroll overflow-y-auto w-full flex-1";
+                feedbackExpTitle.className = "font-black bg-[#008B45] text-white px-2 py-1 block mb-4 text-lg md:text-xl mt-2 w-fit";
             } else {
-                feedbackIcon.innerText = "😨";
+                feedbackIcon.innerText = "✕";
                 feedbackTitle.innerText = dict.feedbackWrong;
-                feedbackTitle.className = "text-3xl font-black text-red-700";
-                feedbackBox.className = "p-4 md:p-6 rounded-2xl mb-4 custom-scroll overflow-y-auto w-full bg-red-50 border border-red-300 fade-in";
-                feedbackExpTitle.className = "font-black block mb-3 text-2xl text-red-800";
+                feedbackTitle.className = "text-3xl md:text-5xl font-black uppercase tracking-tighter text-[#E34234]";
+                feedbackBox.className = "border-[4px] border-[#E34234] bg-[#fff1f0] p-6 md:p-8 shrink-0 mb-6 custom-scroll overflow-y-auto w-full flex-1";
+                feedbackExpTitle.className = "font-black bg-[#E34234] text-white px-2 py-1 block mb-4 text-lg md:text-xl mt-2 w-fit";
             }
 
             feedbackExpTitle.innerText = expTitle;
@@ -599,38 +668,58 @@
 
         function nextQuestion() {
             currentIndex++;
-            if (currentIndex < questionsData.length) {
-                renderQuestion();
-            } else {
-                showResult();
-            }
+            if (currentIndex < questionsData.length) renderQuestion();
+            else showResult();
         }
 
         function showResult() {
+            screenFeedback.classList.remove('flex');
             screenFeedback.classList.add('hidden');
             gameHeader.classList.add('hidden');
+
             screenResult.classList.remove('hidden');
+            screenResult.classList.add('flex');
+
+            retriggerAnimations();
 
             const finalScore = score * 10;
-            document.getElementById('final-score').innerText = finalScore;
+            const finalScoreElement = document.getElementById('final-score');
+            finalScoreElement.innerText = finalScore;
 
-            const resultEmoji = document.getElementById('result-emoji');
+            // Apply color based on score (>=60 is Green, <60 is Red)
+            if (finalScore >= 60) {
+                finalScoreElement.style.color = 'var(--truth-green)';
+            } else {
+                finalScoreElement.style.color = 'var(--alert-red)';
+            }
+
             const resultMessage = document.getElementById('result-message');
             const dict = i18n[currentLang];
 
             if (finalScore === 100) {
-                resultEmoji.innerText = "👑";
                 resultMessage.innerHTML = dict.resultPerfect;
             } else if (finalScore >= 70) {
-                resultEmoji.innerText = "👏";
                 resultMessage.innerHTML = dict.resultGood;
             } else {
-                resultEmoji.innerText = "📝";
                 resultMessage.innerHTML = dict.resultTryAgain;
             }
         }
 
-        // Initialize default language explicitly on load to ensure correct rendering
+        function restartGame() {
+            screenResult.classList.remove('flex');
+            screenResult.classList.add('hidden');
+
+            screenStart.classList.remove('hidden');
+            screenStart.classList.add('block');
+
+            document.getElementById('masthead-icon').classList.remove('hidden');
+
+            retriggerAnimations();
+
+            // Re-initialize language in case needed
+            updateUILanguage();
+        }
+
         updateUILanguage();
     </script>
 </body>
