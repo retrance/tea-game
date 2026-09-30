@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健康謠言查核報 - 社論版</title>
+    <meta name="description" content="網路上流傳的健康消息真假難辨？加入【山茗主義】調查員行列，挑戰 10 題高難度茶葉健康謠言查核！">
+    <meta name="author" content="山茗主義 Summit Tea">
+    <!-- Open Graph for Social Sharing -->
+    <meta property="og:title" content="健康謠言查核報 - 社論版">
+    <meta property="og:description" content="你能看穿似是而非的健康謠言嗎？挑戰 10 題高難度查核測驗！🍵">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍵</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Noto+Serif+TC:wght@500;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --paper-bg: #F4F0EC;
+            --ink-black: #111111;
+            --alert-red: #E34234;
+            --truth-green: #008B45;
+        }
+
+        body {
+            font-family: 'Playfair Display', 'Noto Serif TC', serif;
+            background-color: var(--paper-bg);
+            color: var(--ink-black);
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+            background-image: radial-gradient(var(--ink-black) 1px, transparent 1px);
+            background-size: 30px 30px;
+            background-position: 0 0;
+            background-color: var(--paper-bg);
+        }
+
+        /* Brutalist Styles */
+        .brutal-border {
+            border: 3px solid var(--ink-black);
+            background: var(--paper-bg);
+            border-radius: 0 !important;
+        }
+
+        .brutal-shadow {
+            box-shadow: 8px 8px 0px 0px var(--ink-black);
+            transition: all 0.2s ease;
+        }
+
+        .brutal-button {
+            border: 3px solid var(--ink-black);
+            background: white;
+            font-family: 'Space Mono', 'Noto Serif TC', monospace, serif;
+            text-transform: uppercase;
+            font-weight: 700;
+            border-radius: 0;
+            box-shadow: 6px 6px 0px 0px var(--ink-black) !important;
+            transition: all 0.1s ease;
+            position: relative;
+        }
+
+        .brutal-button:active {
+            transform: translate(6px, 6px);
+            box-shadow: 0px 0px 0px 0px var(--ink-black) !important;
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .clipping-box {
+            border-top: 5px solid var(--ink-black);
+            border-bottom: 5px solid var(--ink-black);
+            padding: 20px 0;
+            position: relative;
+            background: url('data:image/svg+xml,%3Csvg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M1 1L9 9M9 1L1 9" stroke="black" stroke-opacity="0.05" stroke-width="0.5"/%3E%3C/svg%3E');
+        }
+
+        .mono-tag {
+            font-family: 'Space Mono', monospace;
+            background: var(--ink-black);
+            color: var(--paper-bg);
+            padding: 4px 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+        }
+
+        /* Animations */
+        .slide-cut {
+            animation: slideCut 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+            opacity: 0;
+            transform: translateX(-40px);
+        }
+
+        .delay-100 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-200 {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes slideCut {
+            from {
+                opacity: 0;
+                transform: translateX(-40px);
+                clip-path: polygon(0 0, 0 100%, 0 100%, 0 0);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+            }
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background-color: var(--ink-black);
+            border: 2px solid var(--paper-bg);
+        }
+
+        /* High contrast selection */
+        ::selection {
+            background: var(--alert-red);
+            color: white;
+        }
+    </style>
+</head>
+
+<body data-lang="zh" class="min-h-screen flex items-start justify-center p-3 md:p-6 lg:p-10 pt-6 md:pt-16">
+
+    <div id="game-container"
+        class="brutal-border brutal-shadow w-full max-w-3xl p-6 md:p-10 relative overflow-hidden flex flex-col min-h-[80vh]">
+
+        <!-- Header / Masthead -->
+        <header class="border-b-[4px] border-black pb-4 mb-6 relative slide-cut z-10">
+            <div class="flex justify-between items-start mb-2">
+                <div class="mono-tag text-xs md:text-sm" id="t-issue">ISSUE No.1</div>
+                <button onclick="toggleLang()" id="lang-btn"
+                    class="font-mono text-xs md:text-sm font-bold uppercase underline hover:bg-black hover:text-white px-2 py-1 transition-colors border border-transparent hover:border-black relative z-20 bg-[var(--paper-bg)]">
+                    ENG (Switch)
+                </button>
+            </div>
+            <!-- pr-16 避免與右邊 icon 疊到 -->
+            <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter pr-16" id="header-title">THE TRUTH
+                INDEX.</h1>
+            <div class="absolute right-0 bottom-4 w-12 h-12 md:w-16 md:h-16 border-[3px] md:border-4 border-black rounded-full text-[var(--paper-bg)] bg-[var(--ink-black)] flex items-center justify-center font-bold font-mono text-xl md:text-2xl"
+                id="masthead-icon">✓</div>
+        </header>
+
+        <!-- Dynamic Header Info row -->
+        <div id="game-header"
+            class="hidden font-mono text-xs md:text-sm border-b-2 border-black pb-3 mb-6 slide-cut delay-100">
+            <div class="flex justify-between font-bold uppercase">
+                <div class="flex gap-4">
+                    <span id="progress-text">PAGE 1/10</span>
+                </div>
+                <span id="score-text">SCORE: 0</span>
+            </div>
+            <div class="w-full bg-white border-2 border-black h-3 mt-2">
+                <div id="progress-bar" class="bg-black h-full transition-all duration-300" style="width: 10%"></div>
+            </div>
+        </div>
+
+        <!-- Screen 1: Start -->
+        <div id="screen-start" class="flex-1 flex flex-col justify-center slide-cut delay-100 block">
+            <h2 class="text-3xl md:text-5xl font-black mb-2 uppercase" id="t-title1">健康謠言檔案局</h2>
+            <h3 class="text-2xl md:text-3xl font-bold bg-black text-white inline-block px-3 py-1 mb-8" id="t-title2">
+                高難度查核專區</h3>
+
+            <p id="t-intro"
+                class="text-lg md:text-xl leading-relaxed mb-10 font-bold max-w-2xl border-l-[6px] border-[#E34234] pl-4">
+                網路上常傳各種引經據典的「喝茶健康消息」，看起來都超逼真！<br><br>
+                這 10 題都是從各大群組真實擷取的內容（真假摻半），身為調查員，你能看穿這些似是而非的偽科學陷阱嗎？
+            </p>
+
+            <button onclick="startGame()" id="t-startBtn"
+                class="brutal-button py-4 px-4 md:px-8 text-xl w-full md:w-auto bg-black text-white whitespace-nowrap">
+                START INVESTIGATION ↳
+            </button>
+        </div>
+
+        <!-- Screen 2: Quiz -->
+        <div id="screen-quiz" class="hidden flex-1 flex-col relative pb-3">
+            <!-- Added padding bottom manually for shadow space -->
+            <div class="mb-4">
+                <span class="mono-tag text-xs md:text-sm" id="t-questionPrefix">Intercepted Data:</span>
+            </div>
+
+            <div class="clipping-box flex-1 mb-8 flex flex-col justify-center slide-cut delay-100">
+                <div id="question-scroll-box"
+                    class="custom-scroll overflow-y-auto max-h-[40vh] text-lg md:text-xl leading-relaxed font-bold px-2">
+                    <span id="question-text">Loading data...</span>
+                </div>
+            </div>
+
+            <!-- Added pb-2 to prevent shadow clipping -->
+            <div id="action-buttons" class="grid grid-cols-2 gap-4 md:gap-6 mt-auto slide-cut delay-200 pb-2">
+                <button onclick="checkAnswer(true)"
+                    class="brutal-button py-6 border-[#008B45] text-[#008B45] hover:bg-[#008B45] hover:text-white flex flex-col items-center justify-center group">
+                    <span id="t-btnTrue" class="text-2xl md:text-3xl font-serif font-black">真的</span>
+                </button>
+                <button onclick="checkAnswer(false)"
+                    class="brutal-button py-6 border-[#E34234] text-[#E34234] hover:bg-[#E34234] hover:text-white flex flex-col items-center justify-center group">
+                    <span id="t-btnFalse" class="text-2xl md:text-3xl font-serif font-black">假的</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Screen 3: Feedback -->
+        <div id="screen-feedback" class="hidden flex-1 flex-col pb-2">
+            <div id="feedback-box"
+                class="border-[4px] border-black p-6 md:p-8 shrink-0 mb-6 custom-scroll overflow-y-auto w-full flex-1 bg-white">
+                <div class="flex items-start gap-4 mb-6 border-b-2 border-black pb-4">
+                    <span id="feedback-icon"
+                        class="text-4xl bg-black text-white w-12 h-12 flex justify-center items-center rounded-none font-mono">!</span>
+                    <h3 id="feedback-title"
+                        class="text-3xl md:text-5xl font-black uppercase tracking-tighter self-center">VERIFIED</h3>
+                </div>
+
+                <div id="feedback-explanation-container" class="mb-6">
+                    <span id="feedback-exp-title"
+                        class="font-black bg-black text-white px-2 py-1 block mb-4 text-lg md:text-xl mt-2 w-fit">解釋標題</span>
+                    <div id="feedback-exp-body" class="font-serif text-lg md:text-xl leading-relaxed font-bold">解釋內容...
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t-2 border-dashed border-black mt-4 font-mono text-xs md:text-sm">
+                    <span class="font-bold underline" id="t-sourceLabel">SOURCE REF:</span>
+                    <div id="feedback-source" class="mt-2 text-black font-bold break-words pr-4"></div>
+                </div>
+            </div>
+
+            <button onclick="nextQuestion()" id="t-nextBtn"
+                class="brutal-button py-5 px-4 text-xl w-full bg-black text-white whitespace-nowrap">
+                VERIFY NEXT RECORD ↳
+            </button>
+        </div>
+
+        <!-- Screen 4: Result -->
+        <div id="screen-result" class="hidden flex-1 flex-col">
+            <div class="border-[4px] border-black p-6 bg-white mb-6 slide-cut relative overflow-hidden">
+                <div class="mono-tag text-xs md:text-sm mb-4 absolute top-0 left-0">FINAL REPORT</div>
+
+                <div
+                    class="flex flex-col md:flex-row items-start md:items-center justify-between mt-8 border-b-4 border-black pb-6 gap-2 md:gap-6">
+                    <div class="text-left w-full">
+                        <h1 class="text-3xl md:text-5xl font-black uppercase mb-1 tracking-tighter" id="t-resultTitle">
+                            測驗結束</h1>
+                        <p class="font-mono font-bold text-gray-500 uppercase text-xs md:text-sm" id="t-resultSubtitle">
+                            Total Score</p>
+                    </div>
+                    <div class="text-[5rem] md:text-9xl font-black tracking-tighter self-end md:self-auto leading-none mt-2 md:mt-0"
+                        id="final-score">100</div>
+                </div>
+
+                <div class="py-6 border-b-4 border-black">
+                    <p id="result-message" class="text-lg md:text-xl font-bold leading-relaxed">評語...</p>
+                </div>
+
+                <div class="py-6 font-mono">
+                    <p class="font-black uppercase text-lg md:text-xl mb-2" id="t-aboutTitle">About Us</p>
+                    <div id="t-aboutText" class="text-sm md:text-base font-bold text-gray-700">
+                        這款小測驗是由【山茗主義】特別設計！我們在竹北的茶空間推廣茶與茶席美學已有九年。<br>下次收到驚悚健康消息，請先查證再轉發。🍵
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="restartGame()" id="t-retryBtn"
+                class="brutal-button py-5 px-4 text-xl w-full bg-black text-white slide-cut delay-200 mt-auto whitespace-nowrap">
+                RESTART INVESTIGATION ↺
+            </button>
+        </div>
+
+    </div>
+
+    <!-- The exact original logic script with minor DOM updates -->
+    <script>
+        const i18n = {
+            zh: {
+                issue: "第 1 期",
+                mainTitle: "真相查核報",
+                title1: "健康謠言檔案局",
+                title2: "高難度查核專區",
+                intro: "網路上常傳各種引經據典的「喝茶健康消息」，看起來都超逼真！<br><br>這 10 題都是從各大群組真實擷取的內容（真假摻半），身為調查員，你能看穿這些似是而非的偽科學陷阱嗎？",
+                startBtn: "開始調查 ↳",
+                questionPrefix: "攔截資料片段：",
+                btnTrue: "真的",
+                btnFalse: "假的",
+                sourceLabel: "SOURCE REF / 來源：",
+                nextBtn: "審查下一份資料 ↳",
+                viewResult: "查看結果 ↳",
+                resultTitle: "審查完畢",
+                resultSubtitle: "最終評分",
+                aboutTitle: "ABOUT AUTHOR",
+                aboutText: "這款小遊戲由<a href='https://www.facebook.com/SummitTeaTW' target='_blank' class='text-black underline hover:bg-black hover:text-white transition-colors px-1'>【山茗主義】</a>製作，我們在竹北推廣茶文化與茶席美學已有九年。<br><br>下次收到難辨真假的健康消息，記得先查證再轉發喔！🍵",
+                retryBtn: "重新調查 ↺",
+                progressText: (current, total) => `檔案 ${current} / ${total}`,
+                scoreText: (score) => `積分: ${score}`,
+                feedbackCorrect: "審查正確",
+                feedbackWrong: "判斷失誤",
+                resultPerfect: `完美無瑕！你具備了報社總編輯等級的闢謠敏銳度。<br>這些移花接木的數據完全唬不了你！`,
+                resultGood: `表現優良！你具備了紮實的科學查核觀念。<br>只有少數幾題偽裝極深的魔王題騙過了你，但你已比九成的人清醒！`,
+                resultTryAgain: `這次的資料偽裝得太好了對吧？<br>網路上許多假新聞都故意引用「醫學雜誌」來增添權威感。透過這次調查，你已經成功升級了防禦力！`,
+                langToggle: "SWITCH TO ENG",
+                sourceLinkText: "[查閱原件]"
+            },
+            en: {
+                issue: "ISSUE No.1",
+                mainTitle: "THE TRUTH INDEX.",
+                title1: "Rumor Archives",
+                title2: "Hardcore Checking",
+                intro: "The internet is full of \"healthy tea habits\" citing fake sources!<br><br>These 10 interrogations are real messages from group chats. As an investigator, can you spot the pseudoscientific traps?",
+                startBtn: "START INVESTIGATION ↳",
+                questionPrefix: "INTERCEPTED DATA:",
+                btnTrue: "TRUE",
+                btnFalse: "FALSE",
+                sourceLabel: "SOURCE REF: ",
+                nextBtn: "VERIFY NEXT RECORD ↳",
+                viewResult: "VIEW FINAL REPORT ↳",
+                resultTitle: "AUDIT COMPLETE",
+                resultSubtitle: "Total Score",
+                aboutTitle: "ABOUT AUTHOR",
+                aboutText: "This quiz is designed by <a href='https://www.facebook.com/SummitTeaTW' target='_blank' class='text-black underline hover:bg-black hover:text-white transition-colors px-1'>[Summit Tea]</a>! We promote tea aesthetics in Taiwan for 9 years.<br><br>Always fact-check before forwarding shocking health rumors! 🍵",
+                retryBtn: "RESTART INVESTIGATION ↺",
+                progressText: (current, total) => `FILE ${current}/${total}`,
+                scoreText: (score) => `SCORE: ${score}`,
+                feedbackCorrect: "VERIFIED VALID",
+                feedbackWrong: "JUDGMENT ERROR",
+                resultPerfect: `Flawless execution! You are an absolute master at dodging misinformation.`,
+                resultGood: `Excellent work! You possess solid scientific skepticism.<br>Only a few highly deceptive files caught you off guard.`,
+                resultTryAgain: `These were tough forgeries, weren't they?<br>Through this audit, you've significantly upgraded your media literacy!`,
+                langToggle: "切換為中文",
+                sourceLinkText: "[VIEW ORIGINAL]"
+            }
+        };
+
+        const questionsData = [
+            {
+                zh: {
+                    text: "只要喉嚨不舒服，含3~4片茶葉（就是, 茶 乾, 3~ 4 粒,）在口裡–乾泡茶，並輕咬釋味，直到茶鹼味過重無茶時，吐掉；前後約20~30分鐘–什麼喉嚨不適的感覺都立即消失–包括病毒。兒茶素、茶鹼等等是能夠殺滅菌病毒的，而且會口齒留香，較大蒜的辣蒜素好接受；請記得隨身用鏈夾帶攜帶些茶葉，以備不時之須。",
+                    explanation: "【這是缺乏實證的假新聞！】\n專家指出，雖然經過純化萃取的高濃度兒茶素在體外實驗可抑制病毒，但『口嚼茶葉』無法達到此效果，也無任何醫學證據能預防或殺死喉嚨的病毒。咀嚼茶葉僅能幫助分泌唾液緩解乾燥，且直接吃生茶葉可能會有農藥殘留等食安疑慮。",
+                    source: "台灣事實查核中心 (TFC) https://tfc-taiwan.org.tw/fact-check-reports/migration-7581/"
+                },
+                en: {
+                    text: "Whenever your throat feels uncomfortable, keep 3~4 pieces of dry tea leaves in your mouth... chew lightly until the tea flavor is gone, then spit it out. In about 20-30 minutes, all throat discomfort will disappear - including viruses! Catechins and theophylline can kill bacterial viruses...",
+                    explanation: "【This is unverified fake news!】\nExperts state that while highly purified catechins can inhibit viruses in test tubes, 'chewing dry tea leaves' cannot achieve this effect, nor is there any medical evidence that it kills throat viruses. Chewing leaves only helps stimulate saliva to relieve dryness, and eating raw tea leaves carries food safety risks such as pesticide residue.",
+                    source: "Taiwan FactCheck Center (TFC) https://tfc-taiwan.org.tw/fact-check-reports/migration-7581/"
+                },
+                isTrue: false
+            },
+            {
+                zh: {
+                    text: "紅茶竟然是「心臟殺手」？中醫告誡，爲了保護心髒健康，50歲後，這幾種茶還是少喝爲妙！越喝心臟越無力！ https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhwj70ge9JydipEoo-bBSDj1A0TAsdurkAxaMqK7pyDzIFEdaskRbDfmrm3duNq0Fe84QmD1OdWCsW3Q1sv3iMuE6uuRlmJt1P9d6oJyMF1p7V7kql6crFbDeIHJWXpvcEQjUyQZfVd39GMneFyAR_Tieddte5yxVJ6gd27QmX7hS2uOjWGTPLPzvy2pX0/s1600/combined-image-1773756222958.png",
+                    explanation: "【這是AI語音合成的假影片！】\n專家表示此傳言完全違背中醫藥學理，且該影片是假借過世知名中醫師的名義來製造恐慌。適量飲用溫和的紅茶並不會導致心臟無力，反而對心血管有一定益處。",
+                    source: "MyGoPen 麥擱騙 https://www.mygopen.com/2026/03/black-tea.html"
+                },
+                en: {
+                    text: "Is black tea actually a 'heart killer'? Chinese medicine doctors warn: to protect heart health after 50, you should drink less of these teas! The more you drink, the weaker your heart gets! https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhwj70ge9JydipEoo-bBSDj1A0TAsdurkAxaMqK7pyDzIFEdaskRbDfmrm3duNq0Fe84QmD1OdWCsW3Q1sv3iMuE6uuRlmJt1P9d6oJyMF1p7V7kql6crFbDeIHJWXpvcEQjUyQZfVd39GMneFyAR_Tieddte5yxVJ6gd27QmX7hS2uOjWGTPLPzvy2pX0/s1600/combined-image-1773756222958.png",
+                    explanation: "【This is an AI-generated fake video!】\nExperts state this goes completely against Traditional Chinese Medicine principles, and the video falsely uses a deceased famous doctor's identity to create panic. Drinking moderate amounts of mild black tea will not weaken your heart.",
+                    source: "MyGoPen https://www.mygopen.com/2026/03/black-tea.html"
+                },
+                isTrue: false
+            },
+            {
+                zh: {
+                    text: "抗氧化試驗證實，一杯300ml的茶，它的抗氧化功能 = 一瓶半的紅葡萄酒 = 4個蘋果 = 5只洋蔥 = 7杯的鮮橙汁…茶多酚的抗衰老效果要比維生素E強18倍！",
+                    explanation: "【這是沒有科學實證的誇大說法！】\n食藥署澄清，該傳言沒有說明茶葉濃度與沖泡比例。更重要的是，不同食物含有的抗氧化物質（如維生素C、花青素）完全不同，絕對無法直接用「等號」互相換算比較。維持健康應均衡飲食。",
+                    source: "衛福部食藥署闢謠專區 https://www.fda.gov.tw/tc/newsContent.aspx?cid=5049&id=29061"
+                },
+                en: {
+                    text: "Antioxidant tests confirm that a 300ml cup of tea has the antioxidant power of = 1.5 bottles of red wine = 4 apples = 5 onions = 7 glasses of orange juice... The anti-aging effect of tea polyphenols is 18 times stronger than Vitamin E!",
+                    explanation: "【This is an exaggerated statement with no scientific evidence!】\nThe FDA clarified that the rumor doesn't specify tea concentration or brewing ratios. More importantly, different foods contain completely different antioxidants (like Vitamin C vs. anthocyanins), which absolutely cannot be mathematically equated. You should maintain a balanced diet.",
+                    source: "Taiwan FDA Fact-Checking Section https://www.fda.gov.tw/tc/newsContent.aspx?cid=5049&id=29061"
+                },
+                isTrue: false
+            },
+            {
+                zh: {
+                    text: "茶葉內幕大曝光！喝不喝茶的都快看看！每天喝8-10克茶葉，12周內，僅茶葉自身作用減掉的脂肪約為3斤。另外茶葉中的氨基酸會促進多巴胺的大量分泌，讓你天天開心！",
+                    explanation: "【這是過度誇大的錯誤訊息！】\n營養師指出，大量喝茶對「減重」並沒有明確效果，只能作為輔助，還是必須搭配飲食與運動。另外，茶葉中的茶胺酸含量其實很低，並無法達到傳言宣稱能「促進多巴胺大量分泌」的神奇效果。",
+                    source: "台灣事實查核中心 (TFC) https://tfc-taiwan.org.tw/fact-check-reports/migration-6897/"
+                },
+                en: {
+                    text: "Huge expose on tea! Everyone must read this! Drinking 8-10g of tea daily for 12 weeks will burn roughly 3 pounds of fat effortlessly. Also, the amino acids in tea will promote massive dopamine secretion, keeping you happy every day!",
+                    explanation: "【This is an over-exaggerated false message!】\nNutritionists point out that drinking lots of tea has no clear effect on direct 'weight loss' and must be paired with diet and exercise. Additionally, the L-theanine content in tea is actually quite low and cannot achieve the magical effect of 'massive dopamine secretion' claimed.",
+                    source: "Taiwan FactCheck Center (TFC) https://tfc-taiwan.org.tw/fact-check-reports/migration-6897/"
+                },
+                isTrue: false
+            },
+            {
+                zh: {
+                    text: "檸檬水救你一輩子！掌握吳永志防癌抗病的秘密～不一樣的蔬果汁百症保健全解👉熱的檸檬水救你一輩子!再忙也要看，然後告訴別人，把愛傳出去！\n\n切2~3 薄片檸檬放在杯子/容器裏，並加入熱水，它會變成「鹼性水」，每天飲用，對誰都有好處。熱檸檬水能釋放一種苦澀抗癌物質，這是在醫藥領域有效治療癌症的最新進展，請你仔細閱讀以下文章並自己評判它是否有效。凍檸檬水只有維他命C，就如番茄煮熟的比生的好一樣。\n\n檸檬是一個用來殺死癌細胞的神奇產品，它比化療強一萬倍。它的口感是愉快的，而且它並不產生像進行化療一樣的可怕影響。它對囊腫及腫瘤產生影響，被證明能夠補救所有類型的癌症。\n\n血壓太高時，它可以調節血壓、抗抑鬱...用檸檬提取物治療，只會破壞惡性腫瘤細胞，它不影響健康的細胞。",
+                    explanation: "【這是缺乏實證的經典假偏方！】\n專家與醫師指出，人體的血液酸鹼值是恆定的，不會因為喝檸檬水就變成「鹼性體質」。「熱檸檬水殺癌細胞」的說法完全沒有科學證據支持，更別提「比化療強一萬倍」。誤信偏方恐延誤正規癌症治療的黃金期。",
+                    source: "台灣事實查核中心 (TFC) https://tfc-taiwan.org.tw/fact-check-reports/migration-6286/"
+                },
+                en: {
+                    text: "Lemon water saves you for a lifetime! Releasing a bitter anti-cancer substance, it's the latest breakthrough in medical science to treat cancer effectively. Lemon is a miraculous product to kill cancer cells, 10,000 times stronger than chemotherapy. It does not produce the horrible effects like chemotherapy. It destroys malignant tumor cells without affecting healthy ones. Drink it every day, it turns into 'alkaline water'. Share this love, it's important!",
+                    explanation: "【This is a classic fake remedy lacking evidence!】\nExperts and doctors point out that human blood pH is strictly regulated and won't become 'alkaline' by drinking lemon water. Claims that 'hot lemon water kills cancer cells' have ZERO scientific support, let alone being '10,000 times stronger than chemo'. Believing in such remedies can delay crucial formal medical treatment.",
+                    source: "Taiwan FactCheck Center (TFC) https://tfc-taiwan.org.tw/fact-check-reports/migration-6286/"
+                },
+                isTrue: false
+            },
+            {
+                zh: {
+                    text: "胃潰瘍或腸胃較敏感的人，如果在空腹時喝濃茶（特別是綠茶等未發酵茶），容易刺激胃黏膜、促進胃酸分泌，進而導致腸胃不適或「胃慍」。",
+                    explanation: "【這是真實的健康常識！】\n茶葉中的咖啡因和茶多酚具有輕微刺激性。腸胃敏感者建議在飯後飲用，或選擇溫和的發酵茶/熟茶/焙火茶（如重焙烏龍、紅茶、普洱等），並避免空腹大量飲用。",
+                    source: "醫學知識"
+                },
+                en: {
+                    text: "For those with stomach ulcers or sensitive stomachs, drinking strong tea (especially unfermented tea like green tea) on an empty stomach can easily irritate the gastric mucosa and promote stomach acid secretion, leading to discomfort.",
+                    explanation: "【This is true health knowledge!】\nCaffeine and tea polyphenols in tea are slightly stimulating. Those with sensitive stomachs are advised to drink tea after meals or choose milder fermented/roasted teas (like heavily roasted oolong, black tea, pu'er), and avoid drinking large amounts on an empty stomach.",
+                    source: "Medical Knowledge"
+                },
+                isTrue: true
+            },
+            {
+                zh: {
+                    text: "台灣的茶葉在上市前，通常需要經過嚴格的農藥殘留檢驗。目前台灣茶農使用的合法農藥多為「脂溶性」，這意味著即使有微量殘留，也很難溶解在熱水（茶湯）中被我們喝下肚。",
+                    explanation: "【這是真實的農業知識！】\n許多長輩以為「第一泡茶一定要倒掉洗農藥」，其實脂溶性農藥用水是泡不出來的。如果是來源清楚的合格茶葉，第一泡反而富含最多能安神的茶胺酸與抗氧化物質，倒掉非常可惜！",
+                    source: "農業部茶及飲料作物改良場"
+                },
+                en: {
+                    text: "Tea leaves in Taiwan usually undergo strict pesticide residue tests before hitting the market. Most legal pesticides used by Taiwanese tea farmers are 'fat-soluble', meaning even if there are trace residues, they are very hard to dissolve in hot water (tea soup).",
+                    explanation: "【This is true agricultural knowledge!】\nMany elders think 'the first steep must be poured away to wash off pesticides', but fat-soluble pesticides cannot be washed out with water. If the tea is properly certified, the first steep actually contains the most relaxing L-theanine and antioxidants. Throwing it away is a waste!",
+                    source: "Taiwan Tea Research and Extension Station"
+                },
+                isTrue: true
+            },
+            {
+                zh: {
+                    text: "茶葉中富含的「兒茶素（Catechins）」屬於多酚類化合物，科學研究已多次證實，它是一種優良的天然抗氧化劑，適量飲用對維持身體機能有輔助效果。",
+                    explanation: "【這是正確的科學知識！】\n兒茶素是茶葉中最核心的保健成分之一，未發酵的綠茶保留最完整；而部分發酵或全發酵的烏龍茶與紅茶，則會在發酵過程中轉化為茶黃質、茶紅質等大分子多酚，同樣具有優良的抗氧化效果。",
+                    source: "國際營養學期刊 / 食品科學"
+                },
+                en: {
+                    text: "'Catechins' abundant in tea leaves belong to polyphenolic compounds. Scientific research has repeatedly proven that they are excellent natural antioxidants, and moderate consumption helps maintain bodily functions.",
+                    explanation: "【This is correct scientific knowledge!】\nCatechins are one of the core health components in tea. Unfermented green tea retains the most; while partially or fully fermented oolong and black teas transform them into theaflavins and thearubigins during fermentation, which also possess excellent antioxidant effects.",
+                    source: "International Journals of Nutrition / Food Science"
+                },
+                isTrue: true
+            },
+            {
+                zh: {
+                    text: "如果喝茶喝太多、太濃，或是太晚喝茶，可能會因為攝取過多的「咖啡因」而導致心跳加快、短暫血壓上升或夜間失眠。",
+                    explanation: "【這是真實的生理反應！】\n雖然高品質茶葉中豐富的「茶胺酸」能帶來放鬆感，幫助緩解咖啡因帶來的神經刺激，但對於本身對咖啡因敏感的人來說，過量飲用濃茶依然會引起心悸或影響睡眠品質。",
+                    source: "衛福部 / 心臟科醫師提醒"
+                },
+                en: {
+                    text: "Drinking too much tea, making it too strong, or drinking it too late can lead to excessive 'caffeine' intake, which may cause a faster heartbeat, temporary rise in blood pressure, or nighttime insomnia.",
+                    explanation: "【This is a true physiological response!】\nAlthough abundant 'L-theanine' in high-quality tea brings relaxation to help ease nervous stimulation from caffeine, for those naturally sensitive to caffeine, drinking too much strong tea can still cause palpitations or affect sleep quality.",
+                    source: "Ministry of Health / Cardiologist Reminders"
+                },
+                isTrue: true
+            },
+            {
+                zh: {
+                    text: "太神奇了！香茅＋青蘋果=膝蓋軟骨重生！ 到了某個年紀、膝蓋不感覺到酸痛、靈活度不夠、卡卡的人幾乎很少... 【香茅＋青蘋果幫助膝蓋軟骨重生】 材料： 5根香茅 2粒青蘋果(全部切塊) 做法：加水蓋過材料用小火煮到蘋果變軟。一天一次,有助膝蓋軟骨重生",
+                    explanation: "【這是無效的網路偏方！】\n骨科醫師表示，軟骨中缺乏血管，一旦磨損幾乎很難自行修復再生。雖然香茅和青蘋果都屬於天然食材，但並沒有任何醫學證據顯示喝「香茅青蘋果茶」就能讓關節軟骨再生。",
+                    source: "MyGoPen 麥擱騙 https://www.mygopen.com/2026/02/apple.html"
+                },
+                en: {
+                    text: "Amazing! Lemongrass + Green Apple = Knee Cartilage Regeneration! When you reach a certain age, few people don't feel knee soreness or stiffness... [Lemongrass + Green Apple Helps Knee Cartilage Regenerate] Ingredients: 5 lemongrass, 2 green apples. Directions: Cover with water & simmer until apples are soft. Drink once a day to help regenerate knee cartilage.",
+                    explanation: "【This is an ineffective internet remedy!】\nOrthopedic surgeons state that cartilage lacks blood vessels, and once worn down, it is extremely difficult to repair or regenerate on its own. While lemongrass and green apples are natural foods, there is absolutely zero medical evidence showing that drinking 'Lemongrass Green Apple Tea' can regenerate joint cartilage.",
+                    source: "MyGoPen https://www.mygopen.com/2026/02/apple.html"
+                },
+                isTrue: false
+            }
+        ];
+
+        let currentLang = 'zh';
+        let currentIndex = 0;
+        let score = 0;
+        let isQuizStarted = false;
+
+        const screenStart = document.getElementById('screen-start');
+        const gameHeader = document.getElementById('game-header');
+        const screenQuiz = document.getElementById('screen-quiz');
+        const screenFeedback = document.getElementById('screen-feedback');
+        const screenResult = document.getElementById('screen-result');
+
+        const questionText = document.getElementById('question-text');
+        const progressText = document.getElementById('progress-text');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreText = document.getElementById('score-text');
+
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackExpTitle = document.getElementById('feedback-exp-title');
+        const feedbackExpBody = document.getElementById('feedback-exp-body');
+        const feedbackSource = document.getElementById('feedback-source');
+        const feedbackBox = document.getElementById('feedback-box');
+
+        function formatQuestionText(text) {
+            let formatted = text.replace(/\n/g, '<br>');
+            formatted = formatted.replace(/(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif))/gi, '<div class="border-[4px] border-black mt-4 p-1 fade-in-up"><img src="$1" class="w-full grayscale hover:grayscale-0 transition-all block object-contain" alt="Evidence"></div>');
+            return formatted;
+        }
+
+        function formatSourceText(text, lang) {
+            const linkText = i18n[lang].sourceLinkText;
+            return text.replace(/(https?:\/\/[^\s]+)/gi, `<a href="$1" target="_blank" class="text-black bg-yellow-200 px-1 hover:bg-black hover:text-white transition-colors underline break-words inline">${linkText}</a>`);
+        }
+
+        function toggleLang() {
+            currentLang = (currentLang === 'zh') ? 'en' : 'zh';
+            document.body.setAttribute('data-lang', currentLang);
+            updateUILanguage();
+        }
+
+        function retriggerAnimations() {
+            const cuts = document.querySelectorAll('.slide-cut');
+            cuts.forEach(el => {
+                el.style.animation = 'none';
+                void el.offsetWidth;
+                el.style.animation = null;
+            });
+        }
+
+        function updateUILanguage() {
+            const dict = i18n[currentLang];
+
+            document.getElementById('header-title').innerText = dict.mainTitle;
+            document.getElementById('t-issue').innerText = dict.issue;
+
+            document.getElementById('t-title1').innerText = dict.title1;
+            document.getElementById('t-title2').innerText = dict.title2;
+            document.getElementById('t-intro').innerHTML = dict.intro;
+            document.getElementById('t-startBtn').innerText = dict.startBtn;
+            document.getElementById('t-btnTrue').innerText = dict.btnTrue;
+            document.getElementById('t-btnFalse').innerText = dict.btnFalse;
+            document.getElementById('t-questionPrefix').innerText = dict.questionPrefix;
+            document.getElementById('t-sourceLabel').innerText = dict.sourceLabel;
+
+            // Check if it's the last question to update button text
+            const isLast = (currentIndex === questionsData.length - 1);
+            document.getElementById('t-nextBtn').innerText = isLast ? dict.viewResult : dict.nextBtn;
+
+            document.getElementById('t-resultTitle').innerText = dict.resultTitle;
+            document.getElementById('t-resultSubtitle').innerText = dict.resultSubtitle;
+            document.getElementById('t-aboutTitle').innerText = dict.aboutTitle;
+            document.getElementById('t-aboutText').innerHTML = dict.aboutText;
+            document.getElementById('t-retryBtn').innerText = dict.retryBtn;
+            document.getElementById('lang-btn').innerText = dict.langToggle;
+
+            if (isQuizStarted) {
+                progressText.innerText = dict.progressText(currentIndex + 1, questionsData.length);
+                scoreText.innerText = dict.scoreText(score * 10);
+            }
+
+            if (isQuizStarted && screenResult.classList.contains('hidden')) {
+                const q = questionsData[currentIndex];
+                questionText.innerHTML = formatQuestionText(q[currentLang].text);
+
+                if (!screenFeedback.classList.contains('hidden')) {
+                    let expParts = q[currentLang].explanation.split('\n');
+                    let expTitle = expParts[0];
+                    let expBody = expParts.slice(1).join('<br>');
+                    const isCorrect = feedbackTitle.innerText === i18n['zh'].feedbackCorrect || feedbackTitle.innerText === i18n['en'].feedbackCorrect;
+
+                    feedbackTitle.innerText = isCorrect ? dict.feedbackCorrect : dict.feedbackWrong;
+                    feedbackExpTitle.innerText = expTitle;
+                    feedbackExpBody.innerHTML = expBody;
+                    feedbackSource.innerHTML = formatSourceText(q[currentLang].source, currentLang);
+                }
+            }
+
+            if (!screenResult.classList.contains('hidden')) {
+                const finalScore = score * 10;
+                const resultMessage = document.getElementById('result-message');
+                if (finalScore === 100) resultMessage.innerHTML = dict.resultPerfect;
+                else if (finalScore >= 70) resultMessage.innerHTML = dict.resultGood;
+                else resultMessage.innerHTML = dict.resultTryAgain;
+            }
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startGame() {
+            shuffle(questionsData);
+            currentIndex = 0;
+            score = 0;
+            isQuizStarted = true;
+            screenStart.classList.remove('block');
+            screenStart.classList.add('hidden');
+            gameHeader.classList.remove('hidden');
+            document.getElementById('masthead-icon').classList.add('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questionsData[currentIndex];
+            questionText.innerHTML = formatQuestionText(q[currentLang].text);
+
+            const dict = i18n[currentLang];
+            progressText.innerText = dict.progressText(currentIndex + 1, questionsData.length);
+            progressBar.style.width = `${((currentIndex + 1) / questionsData.length) * 100}%`;
+            scoreText.innerText = dict.scoreText(score * 10);
+
+            screenFeedback.classList.add('hidden');
+
+            screenQuiz.classList.remove('hidden');
+            screenQuiz.classList.add('flex');
+
+            retriggerAnimations();
+
+            const scrollBox = document.getElementById('question-scroll-box');
+            if (scrollBox) scrollBox.scrollTop = 0;
+        }
+
+        function checkAnswer(userChoice) {
+            const q = questionsData[currentIndex];
+            const isCorrect = (userChoice === q.isTrue);
+            const dict = i18n[currentLang];
+
+            screenQuiz.classList.add('hidden');
+            screenQuiz.classList.remove('flex');
+
+            screenFeedback.classList.remove('hidden');
+            screenFeedback.classList.add('flex');
+
+            retriggerAnimations();
+            
+            // Refresh labels (e.g., set 'View Results' if it's the last question)
+            updateUILanguage();
+
+            let expParts = q[currentLang].explanation.split('\n');
+            let expTitle = expParts[0];
+            let expBody = expParts.slice(1).join('<br>');
+
+            if (isCorrect) {
+                score++;
+                scoreText.innerText = dict.scoreText(score * 10);
+                feedbackIcon.innerText = "✓";
+                feedbackTitle.innerText = dict.feedbackCorrect;
+                feedbackTitle.className = "text-3xl md:text-5xl font-black uppercase tracking-tighter text-[#008B45]";
+                feedbackBox.className = "border-[4px] border-[#008B45] bg-[#f0fdf4] p-6 md:p-8 shrink-0 mb-6 custom-scroll overflow-y-auto w-full flex-1";
+                feedbackExpTitle.className = "font-black bg-[#008B45] text-white px-2 py-1 block mb-4 text-lg md:text-xl mt-2 w-fit";
+            } else {
+                feedbackIcon.innerText = "✕";
+                feedbackTitle.innerText = dict.feedbackWrong;
+                feedbackTitle.className = "text-3xl md:text-5xl font-black uppercase tracking-tighter text-[#E34234]";
+                feedbackBox.className = "border-[4px] border-[#E34234] bg-[#fff1f0] p-6 md:p-8 shrink-0 mb-6 custom-scroll overflow-y-auto w-full flex-1";
+                feedbackExpTitle.className = "font-black bg-[#E34234] text-white px-2 py-1 block mb-4 text-lg md:text-xl mt-2 w-fit";
+            }
+
+            feedbackExpTitle.innerText = expTitle;
+            feedbackExpBody.innerHTML = expBody;
+            feedbackSource.innerHTML = formatSourceText(q[currentLang].source, currentLang);
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < questionsData.length) renderQuestion();
+            else showResult();
+        }
+
+        function showResult() {
+            screenFeedback.classList.remove('flex');
+            screenFeedback.classList.add('hidden');
+            gameHeader.classList.add('hidden');
+
+            screenResult.classList.remove('hidden');
+            screenResult.classList.add('flex');
+
+            retriggerAnimations();
+
+            const finalScore = score * 10;
+            const finalScoreElement = document.getElementById('final-score');
+            finalScoreElement.innerText = finalScore;
+
+            // Apply color based on score (>=60 is Green, <60 is Red)
+            if (finalScore >= 60) {
+                finalScoreElement.style.color = 'var(--truth-green)';
+            } else {
+                finalScoreElement.style.color = 'var(--alert-red)';
+            }
+
+            const resultMessage = document.getElementById('result-message');
+            const dict = i18n[currentLang];
+
+            if (finalScore === 100) {
+                resultMessage.innerHTML = dict.resultPerfect;
+            } else if (finalScore >= 70) {
+                resultMessage.innerHTML = dict.resultGood;
+            } else {
+                resultMessage.innerHTML = dict.resultTryAgain;
+            }
+        }
+
+        function restartGame() {
+            screenResult.classList.remove('flex');
+            screenResult.classList.add('hidden');
+
+            screenStart.classList.remove('hidden');
+            screenStart.classList.add('block');
+
+            document.getElementById('masthead-icon').classList.remove('hidden');
+
+            retriggerAnimations();
+
+            // Re-initialize language in case needed
+            updateUILanguage();
+        }
+
+        updateUILanguage();
+    </script>
+</body>
+
+</html>
