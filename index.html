@@ -342,37 +342,39 @@ const persona=()=>totalScore()===SCENARIOS.length*100?TOP_PERSONA:PERSONAS[bestA
 const shareText=()=>`🍵 我是「${persona()[0]}」，判斷力 ${totalScore()}／600。\n六則喝茶消息，你會吞下幾則？\n${GAME_URL}`;
 const cardAlt=()=>`我的調查員類型：${persona()[0]}。${persona()[1]}判斷力 ${totalScore()}／600：${SCENARIOS.map(c=>`${c.angle} ${scoreOf(c)}`).join('、')}。`;
 const radarPoint=(i,r,cx,cy)=>{const a=-Math.PI/2+i*Math.PI/3;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];};
-function cardCanvas(){
-  const W=1080,H=1440,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
+// 通關卡的版面：左右留白 M，四個區塊（稱號、六角圖底板、總分、分享用的 QR 頁尾）之間各留一段固定間距。
+// 畫面上的卡不帶 QR；share 為 true 時在卡片下方多接一條頁尾，只出現在分享與下載的圖上。
+function cardCanvas(share=false){
+  const W=1080,CARD=1350,FOOT=283,M=96,H=share?CARD+FOOT:CARD,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext('2d');if(!ctx)return null;
-  const [title,line]=persona(),cream='#f6f0e2',amber='#f6b93b',font=(weight,size)=>`${weight} ${size}px "Noto Serif TC",serif`;
-  const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#8a2f27');bg.addColorStop(.7,'#4a1613');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-  const cx=540,cy=725,R=170,pt=(i,r)=>radarPoint(i,r,cx,cy);
-  const ink='#17231d',tea='#8a4f24';
-  ctx.strokeStyle='#f6f0e240';ctx.lineWidth=3;ctx.strokeRect(36,36,W-72,H-72);
-  ctx.textAlign='left';ctx.fillStyle=cream;ctx.font=font(700,34);ctx.fillText('茶訊調查局',90,128);
-  ctx.fillStyle=amber;ctx.font=font(700,42);ctx.fillText('我的調查員類型',90,232);
-  ctx.font=font(900,150);ctx.fillStyle='#f6b93b59';ctx.fillRect(90,352,ctx.measureText(title).width,40);
-  ctx.fillStyle=cream;ctx.fillText(title,90,385);
+  const [title,line]=persona(),cream='#f6f0e2',amber='#f6b93b',ink='#17231d',tea='#8a4f24',font=(weight,size)=>`${weight} ${size}px "Noto Serif TC",serif`;
+  const box=(x,y,w,h,r)=>{ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);ctx.fill();};
+  const bg=ctx.createLinearGradient(0,0,W,CARD);bg.addColorStop(0,'#8a2f27');bg.addColorStop(.7,'#4a1613');ctx.fillStyle=bg;ctx.fillRect(0,0,W,CARD);
+  ctx.strokeStyle='#f6f0e240';ctx.lineWidth=3;ctx.strokeRect(40,40,W-80,CARD-80);
+  ctx.textAlign='left';ctx.fillStyle='#f6f0e2cc';ctx.font=font(700,32);ctx.fillText('茶訊調查局',M,140);
+  ctx.fillStyle=amber;ctx.font=font(700,38);ctx.fillText('我的調查員類型',M,250);
+  ctx.font=font(900,150);ctx.fillStyle='#f6b93b59';ctx.fillRect(M,367,ctx.measureText(title).width,40);
+  ctx.fillStyle=cream;ctx.fillText(title,M,400);
+  ctx.font=font(700,42);ctx.fillText(`「${line}」`,M-14,478,W-M*2);
   // 六角圖放在淺色底板上，和深色卡面分開。
-  ctx.beginPath();if(ctx.roundRect)ctx.roundRect(90,425,W-180,600,28);else ctx.rect(90,425,W-180,600);ctx.fill();
+  ctx.fillStyle=cream;box(M,540,W-M*2,586,32);
+  const cx=540,cy=830,R=160,pt=(i,r)=>radarPoint(i,r,cx,cy);
   const path=r=>{ctx.beginPath();SCENARIOS.forEach((c,i)=>{const [x,y]=pt(i,typeof r==='function'?r(c):r);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();};
   ctx.strokeStyle='#17231d33';ctx.lineWidth=2;for(const f of [.25,.5,.75,1]){path(R*f);ctx.stroke();}
   SCENARIOS.forEach((c,i)=>{ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(...pt(i,R));ctx.stroke();});
   path(c=>R*scoreOf(c)/100);ctx.fillStyle='#f6b93bb3';ctx.fill();ctx.strokeStyle=tea;ctx.lineWidth=6;ctx.stroke();
   ctx.font=font(700,36);
-  SCENARIOS.forEach((c,i)=>{const [x,y]=pt(i,R+30),side=Math.round(x-cx);ctx.textAlign=side>0?'left':side<0?'right':'center';const top=i===0?y-46:i===3?y+34:y-8;ctx.fillStyle=ink;ctx.fillText(c.angle,x,top);ctx.fillStyle=tea;ctx.fillText(String(scoreOf(c)),x,top+44);});
-  ctx.textAlign='center';ctx.fillStyle=cream;ctx.font=font(700,46);ctx.fillText(`「${line}」`,540,1082,900);
-  ctx.textAlign='left';ctx.font=font(700,32);ctx.fillText('判斷力',90,1250);
-  ctx.fillStyle=amber;ctx.font=font(900,110);const total=String(totalScore());ctx.fillText(total,90,1370);
-  const after=90+ctx.measureText(total).width+10;ctx.fillStyle=cream;ctx.font=font(700,40);ctx.fillText('／600',after,1370);
-  const qr=qrMatrix(GAME_URL);
+  SCENARIOS.forEach((c,i)=>{const [x,y]=pt(i,R+28),side=Math.round(x-cx);ctx.textAlign=side>0?'left':side<0?'right':'center';const top=i===0?y-46:i===3?y+34:y-8;ctx.fillStyle=ink;ctx.fillText(c.angle,x,top);ctx.fillStyle=tea;ctx.fillText(String(scoreOf(c)),x,top+44);});
+  ctx.textAlign='left';ctx.fillStyle=cream;ctx.font=font(700,40);ctx.fillText('判斷力',M,1262);
+  ctx.textAlign='right';ctx.fillText('／600',W-M,1262);
+  const unit=ctx.measureText('／600').width;ctx.fillStyle=amber;ctx.font=font(900,104);ctx.fillText(String(totalScore()),W-M-unit-8,1262);
+  const qr=share&&qrMatrix(GAME_URL);
+  if(share){ctx.fillStyle=cream;ctx.fillRect(0,CARD,W,FOOT);}
   if(qr){
-    // 模組用整數像素，四周留約四格的淺色邊，手機對手機才掃得到。
-    const cell=8,pad=30,box=cell*qr.length+pad*2,x0=W-90-box,y0=1100;
-    ctx.fillStyle=cream;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x0,y0,box,box,18);else ctx.rect(x0,y0,box,box);ctx.fill();
-    ctx.fillStyle=ink;qr.forEach((line,y)=>line.forEach((dark,x)=>{if(dark)ctx.fillRect(x0+pad+x*cell,y0+pad+y*cell,cell,cell);}));
-    ctx.textAlign='right';ctx.fillStyle=cream;ctx.font=font(900,40);ctx.fillText('掃碼換你查',x0-26,1250);
+    // 模組用整數像素；淺色頁尾本身就是 QR 四周的留白。
+    const cell=7,size=cell*qr.length,x0=W-M-size,y0=CARD+(FOOT-size)/2;
+    ctx.fillStyle=ink;qr.forEach((row,y)=>row.forEach((dark,x)=>{if(dark)ctx.fillRect(x0+x*cell,y0+y*cell,cell,cell);}));
+    ctx.textAlign='left';ctx.font=font(900,52);ctx.fillText('掃碼換你查',M,CARD+FOOT/2+18);
   }
   return canvas;
 }
@@ -380,10 +382,10 @@ let shareFile=null,cardData='';
 const cardName=()=>`茶訊調查局-${persona()[0]}.png`;
 function prepareCard(){
   try{
-    const canvas=cardCanvas();if(!canvas)return false;
+    const shown=cardCanvas(),shared=cardCanvas(true);if(!shown||!shared)return false;
     // 在分享按鈕出現前建好檔案，保留系統分享需要的即時使用者操作；畫成功才換掉手上的圖。
-    const data=canvas.toDataURL('image/png');
-    const bytes=Uint8Array.from(atob(data.split(',')[1]),char=>char.charCodeAt(0));
+    const data=shown.toDataURL('image/png');
+    const bytes=Uint8Array.from(atob(shared.toDataURL('image/png').split(',')[1]),char=>char.charCodeAt(0));
     shareFile=new File([bytes],cardName(),{type:'image/png'});cardData=data;return true;
   }catch(e){return false;/* 圖片不可用時仍可分享文字。 */}
 }
@@ -415,7 +417,7 @@ function downloadCard(){
   if(!shareFile){document.getElementById('share-status').textContent='目前無法產生圖片，可以分享文字。';return;}
   const url=URL.createObjectURL(shareFile),a=h('a',{href:url,download:cardName()});
   document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
-  document.getElementById('share-status').textContent='沒看到下載的話，長按圖片也可以儲存。';
+  document.getElementById('share-status').textContent='圖片已送出下載。';
 }
 function restart(){
   state=freshState();save();shareFile=null;cardData='';scrollPositions.clear();
@@ -423,8 +425,8 @@ function restart(){
 }
 function finish(){
   shareFile=null;cardData='';prepareCard();
-  // 通關卡就是一張圖：畫面上看到的和存下來、分享出去的是同一張。
-  const card=cardData?h('img',{class:'poster',id:'finish-card',src:cardData,alt:cardAlt(),width:1080,height:1440}):h('p',{class:'poster-text',id:'finish-card'},cardAlt());
+  // 畫面上的通關卡是一張圖；存下來、分享出去的是同一張再多一條 QR 頁尾。
+  const card=cardData?h('img',{class:'poster',id:'finish-card',src:cardData,alt:cardAlt(),width:1080,height:1350}):h('p',{class:'poster-text',id:'finish-card'},cardAlt());
   if(cardData&&document.fonts?.load){
     // 第一張先用現成字型畫好；網頁字型到齊後重畫一次。
     const sample='茶訊調查局我的調查員類型判斷力掃碼換你查／0123456789「」'+persona().join('')+SCENARIOS.map(c=>c.angle).join('');
@@ -433,7 +435,7 @@ function finish(){
     redraw();if(document.readyState!=='complete')window.addEventListener('load',redraw,{once:true});
   }
   const leaves=Array.from({length:10},(_,i)=>h('span',{class:'leaf','aria-hidden':'true',style:`left:${6+i*9.5}%;animation-delay:${(i*7%10)/8+.4}s`},i%3?'🍃':'🍵'));
-  return h('section',{class:'finish-page'},leaves,heading('六案查完，結案！','finish-title'),card,h('div',{class:'finish-actions'},h('button',{class:'btn primary',id:'share-card',type:'button',onclick:shareCard},'分享給朋友'),h('button',{class:'btn',id:'save-card',type:'button',onclick:downloadCard},'存成圖片')),h('p',{id:'share-status',class:'share-status',role:'status'},cardData?'長按圖片也可以儲存':''),h('div',{id:'share-fallback',hidden:true},h('label',{for:'share-copy'},'分享文字'),h('textarea',{id:'share-copy',readonly:true,rows:4})),h('button',{class:'text-button',type:'button',id:'restart-game',onclick:restart},'回首頁，再玩一次'));
+  return h('section',{class:'finish-page'},leaves,heading('六案查完，結案！','finish-title'),card,h('div',{class:'finish-actions'},h('button',{class:'btn primary',id:'share-card',type:'button',onclick:shareCard},'分享給朋友'),h('button',{class:'btn',id:'save-card',type:'button',onclick:downloadCard},'存成圖片')),h('p',{id:'share-status',class:'share-status',role:'status'},''),h('div',{id:'share-fallback',hidden:true},h('label',{for:'share-copy'},'分享文字'),h('textarea',{id:'share-copy',readonly:true,rows:4})),h('button',{class:'text-button',type:'button',id:'restart-game',onclick:restart},'回首頁，再玩一次'));
 }
 function render(restore=false){
   route=normalizeRoute(route);

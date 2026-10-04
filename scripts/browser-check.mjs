@@ -124,14 +124,14 @@ try{
   const expectedPersona=()=>page.evaluate(()=>{const scores=SCENARIOS.map(scoreOf),sum=scores.reduce((a,b)=>a+b,0);if(scores.every(x=>x===100))return TOP_PERSONA[0];const top=Math.max(...scores),tied=SCENARIOS.filter((c,i)=>scores[i]===top);return PERSONAS[tied[sum%tied.length].angle][0];});
   assert.equal(personaTitle,await expectedPersona());
   await page.evaluate(()=>{window.keep=JSON.stringify(state);for(const c of SCENARIOS){state.cases[c.id].submitted=c.answer;state.cases[c.id].seen=c.segments.filter(s=>s.id).map(s=>s.id);}});assert.equal(await page.evaluate(()=>persona()[0]),await page.evaluate(()=>TOP_PERSONA[0]),'六軸全滿是局長');await page.evaluate(()=>{state=JSON.parse(window.keep);});
-  assert.equal(await page.locator('.finish-page p:visible').count(),1,'通關頁海報以外只留一行狀態文字');assert.equal(await page.locator('.footer:visible').count(),1);
+  assert.equal((await page.locator('#share-status').innerText()).trim(),'','沒操作前通關頁沒有多餘的說明文字');assert.equal(await page.locator('.footer:visible').count(),1);
   await page.waitForFunction(()=>{const img=document.getElementById('finish-card');return img.complete&&img.naturalWidth>0;});
   const poster=await page.evaluate(()=>{const img=document.getElementById('finish-card');const r=img.getBoundingClientRect(),b=document.getElementById('share-card').getBoundingClientRect();return {w:img.naturalWidth,h:img.naturalHeight,same:img.src===cardData,buttonBottom:b.bottom,width:r.width};});
-  assert.deepEqual([poster.w,poster.h,poster.same],[1080,1440,true],'畫面上的海報就是分享的那張圖');assert.ok(poster.buttonBottom<812,'分享按鈕要在第一屏');
+  assert.deepEqual([poster.w,poster.h,poster.same],[1080,1350,true],'畫面上是不帶 QR 的通關卡');assert.ok(poster.buttonBottom<812,'分享按鈕要在第一屏');
   // 實際解碼海報上的 QR：必須回到公開入口的首頁。沒有 BarcodeDetector 的環境要明講沒驗到。
-  const decoded=await page.evaluate(async()=>{if(!('BarcodeDetector'in window))return null;const read=async el=>(await new BarcodeDetector({formats:['qr_code']}).detect(el)).map(x=>x.rawValue);const blank=document.createElement('canvas');blank.width=blank.height=300;blank.getContext('2d').fillRect(0,0,300,300);return {card:await read(document.getElementById('finish-card')),blank:await read(blank)};});
+  const decoded=await page.evaluate(async()=>{if(!('BarcodeDetector'in window))return null;const read=async el=>(await new BarcodeDetector({formats:['qr_code']}).detect(el)).map(x=>x.rawValue);const blank=document.createElement('canvas');blank.width=blank.height=300;blank.getContext('2d').fillRect(0,0,300,300);return {card:await read(await createImageBitmap(shareFile)),shown:await read(document.getElementById('finish-card')),blank:await read(blank)};});
   assert.ok(decoded,'此環境沒有 BarcodeDetector，無法驗證海報 QR；請換用 macOS 的 Chrome 執行');
-  assert.deepEqual(decoded.blank,[],'空白圖不該解出 QR');assert.deepEqual(decoded.card,[await page.evaluate(()=>GAME_URL)],'海報 QR 要解出遊戲入口');reports.push('海報 QR 實際解碼');
+  assert.deepEqual(decoded.blank,[],'空白圖不該解出 QR');assert.deepEqual(decoded.shown,[],'畫面上的通關卡不帶 QR');assert.deepEqual(decoded.card,[await page.evaluate(()=>GAME_URL)],'海報 QR 要解出遊戲入口');reports.push('海報 QR 實際解碼');
   const expectedFull=cases.reduce((sum,c,i)=>sum+[50,30,10][Math.abs(i%3-c.answer)]+50,0);
   assert.equal(await page.evaluate(()=>totalScore()),expectedFull,'線索全看完的總分');assert.ok(finishText.includes(`${expectedFull}／600`));
   await page.reload();await page.locator('#finish-card').waitFor();assert.equal(await page.locator('#finish-card').getAttribute('alt'),finishText);
