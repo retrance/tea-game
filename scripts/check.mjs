@@ -17,7 +17,7 @@ function validate(list){
   assert.equal(list.length,6,'六案不可缺少');
   assert.equal(new Set(list.map(c=>c.id)).size,6,'案件 id 重複');
   for(const c of list){
-    for(const key of ['title','context','finding','angle','todo'])assert.ok(c[key]?.trim(),`${c.id} 缺 ${key}`);
+    for(const key of ['title','context','from','time','finding','angle','todo'])assert.ok(c[key]?.trim(),`${c.id} 缺 ${key}`);
     assert.ok(Number.isInteger(c.answer)&&c.answer>=0&&c.answer<verdicts.length,`${c.id} 缺調查局看法`);
     const clues=c.segments.filter(s=>s.id);
     assert.ok(clues.length>=2&&clues.length<=4,'每案維持短流程');
@@ -53,12 +53,12 @@ for(const saved of ['{bad',JSON.stringify({v:3,cases:{}})])assert.deepEqual(eval
 assert.deepEqual(evaluate('state',context(null,true)),initial,'儲存不可用仍可玩');
 const id=cases[0].id,second=cases[1].id;
 const firstClue=cases[0].segments.find(s=>s.id).id;
-const saved={v:4,cases:{[id]:{selected:2,submitted:0,active:firstClue,seen:[firstClue,'bogus']},[second]:{selected:2,submitted:null,active:'invalid',seen:['hour']},[cases[2].id]:{submitted:1}},finishLine:99};
+const saved={v:4,cases:{[id]:{selected:2,submitted:0,active:firstClue,seen:[firstClue,'bogus']},[second]:{selected:2,submitted:null,active:'invalid',seen:['hour']},[cases[2].id]:{submitted:1}}};
 const ctx=context(JSON.stringify(saved)),restored=evaluate('state',ctx);
 assert.equal(restored.cases[id].selected,0,'原選擇不能被草稿覆蓋');assert.equal(restored.cases[id].submitted,0);
 assert.deepEqual(restored.cases[id].seen,[firstClue],'只恢復存在的線索');assert.deepEqual(restored.cases[second].seen,[],'未提交的案件不能有已看線索');
 assert.equal(restored.cases[second].selected,2);assert.equal(restored.cases[second].active,null);
-assert.equal(restored.cases[cases[2].id].submitted,null,'存檔不得跳過未完成案');assert.equal(restored.finishLine,null);
+assert.equal(restored.cases[cases[2].id].submitted,null,'存檔不得跳過未完成案');
 function route(hash,ctx=context()){ctx.hash=hash;return evaluate('normalizeRoute(parseRoute(hash))',ctx);}
 assert.deepEqual(route(`#case/${cases[5].id}`),{view:'case',id});
 assert.deepEqual(route(`#review/${id}`),{view:'case',id});
@@ -66,10 +66,19 @@ assert.deepEqual(route('#finish'),{view:'case',id});
 assert.deepEqual(route(`#case/${cases[5].id}`,ctx),{view:'case',id:second});
 assert.deepEqual(route(`#review/${id}`,ctx),{view:'review',id});
 const all=structuredClone(initial);for(const p of Object.values(all.cases)){p.submitted=2;p.selected=2;}
-all.finishLine=1;assert.deepEqual(route('#finish',context(JSON.stringify(all))),{view:'finish'});
-assert.equal(evaluate('state.finishLine',context(JSON.stringify(all))),1,'通關短句刷新不變');
+assert.deepEqual(route('#finish',context(JSON.stringify(all))),{view:'finish'});
+// 每個判斷角度都要有自己的通關稱號，海報才不會人人一樣。
+const personas=evaluate('PERSONAS'),topPersona=evaluate('TOP_PERSONA');
+function checkPersonas(map){for(const c of cases)assert.ok(map[c.angle]?.length===2&&map[c.angle].every(x=>x.trim()),`${c.angle} 缺通關稱號`);assert.equal(new Set(Object.values(map).map(p=>p[0]).concat(topPersona[0])).size,cases.length+1,'通關稱號不可重複');}
+checkPersonas(personas);
+const noPersona=structuredClone(personas);delete noPersona[cases[4].angle];assert.throws(()=>checkPersonas(noPersona),/缺通關稱號/);
+// 通關卡的 QR 指向公開入口；能不能掃由瀏覽器檢查實際解碼。
+const gameUrl=evaluate('GAME_URL'),qr=evaluate('qrMatrix(GAME_URL)');
+assert.equal(new URL(gameUrl).protocol,'https:');assert.ok(!/localhost|127\.0\.0\.1/.test(gameUrl),'QR 不可指向本機');
+assert.ok(qr&&qr.length>=21&&qr.every(line=>line.length===qr.length),'入口網址要放得進 QR');
+assert.equal(evaluate('qrMatrix("x".repeat(200))'),null,'放不下的內容不產生 QR');
 // 線索是行內文字，不能撐高行距；觸控高度靠不上色的上下內距補足。
-function checkTarget(source){const rule=source.match(/\.clue\s*\{([^}]*)\}/)?.[1]||'';for(const part of ['padding:10px 0','background-clip:content-box'])assert.ok(rule.includes(part),`點擊區缺 ${part}`);assert.ok(!rule.includes('inline-block'),'點擊區不可撐高行距');}
-checkTarget(html);assert.throws(()=>checkTarget(html.replace('padding:10px 0','padding:0')),/點擊區/);
-for(const forbidden of ['#cases','#compare','選擇案件','先跳過','重新調查','看本案重點','scoreDelta','type: \'range\'','sessionStorage','還無法判斷','收起提示','靠不住','靠得住'])assert.ok(!script.includes(forbidden),`殘留舊流程 ${forbidden}`);
-console.log('PASS：六案來源分流、18 組回饋與調查局看法、順序入口、原答案不可覆蓋、存檔恢復／損壞／不可用；已知錯誤對照會失敗。');
+function checkTarget(source){const rule=source.match(/\.clue\s*\{([^}]*)\}/)?.[1]||'';for(const part of ['padding:13px 0','background-clip:content-box'])assert.ok(rule.includes(part),`點擊區缺 ${part}`);assert.ok(!rule.includes('inline-block'),'點擊區不可撐高行距');}
+checkTarget(html);assert.throws(()=>checkTarget(html.replace('padding:13px 0','padding:0')),/點擊區/);
+for(const forbidden of ['#cases','#compare','選擇案件','先跳過','重新調查','看本案重點','scoreDelta','type: \'range\'','sessionStorage','還無法判斷','收起提示','靠不住','靠得住','FINISH_LINES','finishLine','茶訊拆招員'])assert.ok(!script.includes(forbidden),`殘留舊流程 ${forbidden}`);
+console.log('PASS：六案來源分流、18 組回饋與調查局看法、六個通關稱號、QR 入口、順序入口、原答案不可覆蓋、存檔恢復／損壞／不可用；已知錯誤對照會失敗。');

@@ -40,10 +40,9 @@ try{
   const {page,context}=await newPage();await loaded(page);
   const cases=await page.evaluate(()=>SCENARIOS),verdicts=await page.evaluate(()=>VERDICTS);
   assert.equal(verdicts.length,3);
-  assert.equal(await page.locator('.case-card,table').count(),0);
   assert.equal(await page.getByRole('link',{name:'開始調查',exact:true}).count(),1);
   const start=await page.getByRole('link',{name:'開始調查',exact:true}).boundingBox();assert.ok(start.y+start.height<812,'首頁開始不在首屏');
-  await page.waitForFunction(()=>[...document.querySelectorAll('.bubble')].every(b=>getComputedStyle(b).opacity==='1'),null,{timeout:5000});await noOverflow(page);
+  assert.equal(await page.locator('.notif').count(),3);await page.waitForFunction(()=>[...document.querySelectorAll('.notif')].every(b=>getComputedStyle(b).opacity==='1'),null,{timeout:5000});await noOverflow(page);
   for(const width of [320,375]){await page.setViewportSize({width,height:812});const t=await page.evaluate(()=>{const e=document.querySelector('.hero-title');return e.getBoundingClientRect().height/parseFloat(getComputedStyle(e).lineHeight);});assert.ok(Math.round(t)===2,`首頁標題應為兩行 ${width}: ${t}`);}
   await page.screenshot({path:`${artifactDir}/home-mobile.png`});
   // Known bad DOM: verify the same original-screen inspection actually turns red.
@@ -69,10 +68,11 @@ try{
     const choices=await page.locator('.choices').boundingBox();assert.ok(choices.height<=70,`選項應只佔一列 ${choices.height}`);
     await page.locator('#submit-case').click();await hashIs(page,`#review/${c.id}`);
     assert.equal(await page.locator('#choice-feedback').innerText(),c.feedback[choice]);
-    assert.ok((await page.locator('#verdict-compare').innerText()).includes(`調查局${choice===c.answer?'都':''}選「${verdicts[c.answer]}」`));
+    const stamp=await page.locator('#verdict-compare').innerText();assert.ok(stamp.includes(verdicts[c.answer])&&stamp.includes(choice===c.answer?'調查局也覺得':'調查局覺得'),`印章要對照玩家與調查局 ${stamp}`);
+    assert.ok((await page.locator('.row.me .saved-choice').innerText()).includes(verdicts[choice]),'解析開頭是玩家自己的回覆');
     assert.equal(await page.locator('.feedback').count(),2,'解析只有看法和做法兩個區塊');
-    assert.deepEqual(await page.evaluate(()=>[...new Set([...document.querySelectorAll('.feedback:first-of-type p,.feedback:first-of-type p span')].map(e=>getComputedStyle(e).fontSize+getComputedStyle(e).color))].length),1,'第一塊內文只有一種字級與顏色');
-    if(i===0){const first=page.locator(`#clue-${c.segments.find(s=>s.id).id}`);const line=await page.evaluate(()=>{const t=document.querySelector('.message-text');return {h:t.getBoundingClientRect().height,lh:parseFloat(getComputedStyle(t).lineHeight)};});assert.ok(Math.abs(line.h/line.lh-Math.round(line.h/line.lh))<.05,`線索不可撐高行距 ${JSON.stringify(line)}`);await first.focus();await page.keyboard.press('Enter');assert.equal(await first.getAttribute('aria-expanded'),'true');await page.keyboard.press('Space');assert.equal(await first.getAttribute('aria-expanded'),'false');assert.equal(await page.locator('.clue.seen').count(),1);await page.evaluate(id=>{state.cases[id].seen=[];save();},c.id);await page.reload();await hashIs(page,`#review/${c.id}`);}
+    assert.deepEqual(await page.evaluate(()=>[...document.querySelector('.feedback').children].map(e=>e.tagName+(e.id?'#'+e.id:''))),['DIV#verdict-compare','H2','P#choice-feedback'],'第一塊只有印章、結論、回饋');
+    if(i===0){const first=page.locator(`#clue-${c.segments.find(s=>s.id).id}`);const line=await page.evaluate(()=>{const t=document.querySelector('.message-text');return {h:t.offsetHeight,lh:parseFloat(getComputedStyle(t).lineHeight)};});assert.ok(Math.abs(line.h/line.lh-Math.round(line.h/line.lh))<.05,`線索不可撐高行距 ${JSON.stringify(line)}`);await first.focus();await page.keyboard.press('Enter');assert.equal(await first.getAttribute('aria-expanded'),'true');await page.keyboard.press('Space');assert.equal(await first.getAttribute('aria-expanded'),'false');assert.equal(await page.locator('.clue.seen').count(),1);await page.evaluate(id=>{state.cases[id].seen=[];save();},c.id);await page.reload();await hashIs(page,`#review/${c.id}`);}
     assert.equal(await page.locator('.clue.seen').count(),0,'線索一開始都是未看');
     assert.ok(!(await page.locator('#next-action').getAttribute('class')).includes('primary'),'線索未看完，下一案不是主要按鈕');
     assert.equal(await page.locator('input[type=radio]').count(),0,'解析不再答題');
@@ -87,11 +87,12 @@ try{
         assert.equal(await page.locator('.clue-note:visible').count(),1);
         assert.ok((await button.getAttribute('class')).includes('seen'),'點過的線索要標成已看');
         const geometry=await page.evaluate(id=>{
-          const b=document.getElementById(`clue-${id}`).getBoundingClientRect(),n=document.getElementById(`hint-${id}`).getBoundingClientRect(),a=document.querySelector('.actionbar').getBoundingClientRect();
-          return {button:{x:b.x,y:b.y,width:b.width,height:b.height,bottom:b.bottom},note:{y:n.y,bottom:n.bottom,height:n.height},limit:a.top};
+          const b=document.getElementById(`clue-${id}`).getBoundingClientRect(),n=document.getElementById(`hint-${id}`).getBoundingClientRect(),a=document.querySelector('.actionbar').getBoundingClientRect(),head=document.querySelector('.chat-head').getBoundingClientRect();
+          return {button:{x:b.x,y:b.y,width:b.width,height:b.height,bottom:b.bottom},note:{y:n.y,bottom:n.bottom,height:n.height},limit:a.top,head:head.bottom,bar:a.bottom,view:innerHeight};
         },s.id);
         assert.ok(geometry.button.width>=44&&geometry.button.height>=44,`線索觸控區 ${c.id}/${s.id}`);
-        assert.ok(geometry.button.y>=0&&geometry.note.bottom<=geometry.limit+1,`提示不可被操作列遮住 ${c.id}/${s.id} ${width}: ${JSON.stringify(geometry)}`);
+        assert.ok(geometry.button.y>=geometry.head-11&&geometry.note.bottom<=geometry.limit+1,`線索與提示要留在標題列和操作列之間 ${c.id}/${s.id} ${width}: ${JSON.stringify(geometry)}`);
+        assert.ok(Math.abs(geometry.bar-geometry.view)<=1,`操作列要貼在畫面底部 ${JSON.stringify(geometry)}`);
         if(s.ref)assert.equal(await page.locator(`#hint-${s.id} a`).getAttribute('href'),c.references.find(r=>r.id===s.ref).url);
         await noOverflow(page);
         if(i===3&&s.id==='fat'&&width===375)await page.screenshot({path:`${artifactDir}/fourth-reveal-mobile.png`});
@@ -111,29 +112,42 @@ try{
     assert.equal(await page.locator('.footer:visible').count(),0,'案件頁不顯示關於');
     await page.reload();await hashIs(page,`#review/${c.id}`);
     assert.equal(await page.locator('#choice-feedback').innerText(),c.feedback[choice]);
-    assert.equal(await page.locator('a').filter({hasText:'返回'}).count(),0);
+    assert.equal(await page.locator('.chat-head a,.chat-head button').count(),0,'聊天室標題列不放返回或回首頁');
+    if(i===5)assert.equal(await page.locator('#next-action').innerText(),'領取通關卡 →');
+    if(i===1){const ids=c.segments.filter(s=>s.id).map(s=>s.id);await page.locator(`#clue-${ids[0]}`).click();await page.locator(`#clue-${ids[1]}`).click();assert.equal(await page.locator('.clue-note:visible').count(),1,'點別條線索，前一條要收起');assert.equal(await page.locator(`#clue-${ids[0]}`).getAttribute('aria-expanded'),'false');await page.locator(`#clue-${ids[1]}`).click();}
     await page.locator('.actionbar a').click();
   }
   await hashIs(page,'#finish');assert.equal(await page.locator('table,.message,.feedback').count(),0);
-  const finishText=await page.locator('#finish-card').innerText();assert.ok(finishText.includes('茶訊拆招員'));
-  assert.equal(await page.locator('#finish-card svg.radar .radar-area').count(),1);assert.equal(await page.locator('.recap').count(),0);assert.equal(await page.locator('.footer:visible').count(),1);
+  const personaTitle=await page.evaluate(()=>persona()[0]);
+  const finishText=await page.locator('#finish-card').getAttribute('alt');assert.ok(finishText.includes(personaTitle));
+  // 稱號用和程式不同的寫法重算：同分時用總分取餘數決定哪一軸，六軸全滿另有稱號。
+  const expectedPersona=()=>page.evaluate(()=>{const scores=SCENARIOS.map(scoreOf),sum=scores.reduce((a,b)=>a+b,0);if(scores.every(x=>x===100))return TOP_PERSONA[0];const top=Math.max(...scores),tied=SCENARIOS.filter((c,i)=>scores[i]===top);return PERSONAS[tied[sum%tied.length].angle][0];});
+  assert.equal(personaTitle,await expectedPersona());
+  await page.evaluate(()=>{window.keep=JSON.stringify(state);for(const c of SCENARIOS){state.cases[c.id].submitted=c.answer;state.cases[c.id].seen=c.segments.filter(s=>s.id).map(s=>s.id);}});assert.equal(await page.evaluate(()=>persona()[0]),await page.evaluate(()=>TOP_PERSONA[0]),'六軸全滿是局長');await page.evaluate(()=>{state=JSON.parse(window.keep);});
+  assert.equal(await page.locator('.finish-page p:visible').count(),1,'通關頁海報以外只留一行狀態文字');assert.equal(await page.locator('.footer:visible').count(),1);
+  await page.waitForFunction(()=>{const img=document.getElementById('finish-card');return img.complete&&img.naturalWidth>0;});
+  const poster=await page.evaluate(()=>{const img=document.getElementById('finish-card');const r=img.getBoundingClientRect(),b=document.getElementById('share-card').getBoundingClientRect();return {w:img.naturalWidth,h:img.naturalHeight,same:img.src===cardData,buttonBottom:b.bottom,width:r.width};});
+  assert.deepEqual([poster.w,poster.h,poster.same],[1080,1440,true],'畫面上的海報就是分享的那張圖');assert.ok(poster.buttonBottom<812,'分享按鈕要在第一屏');
+  // 實際解碼海報上的 QR：必須回到公開入口的首頁。沒有 BarcodeDetector 的環境要明講沒驗到。
+  const decoded=await page.evaluate(async()=>{if(!('BarcodeDetector'in window))return null;const read=async el=>(await new BarcodeDetector({formats:['qr_code']}).detect(el)).map(x=>x.rawValue);const blank=document.createElement('canvas');blank.width=blank.height=300;blank.getContext('2d').fillRect(0,0,300,300);return {card:await read(document.getElementById('finish-card')),blank:await read(blank)};});
+  assert.ok(decoded,'此環境沒有 BarcodeDetector，無法驗證海報 QR；請換用 macOS 的 Chrome 執行');
+  assert.deepEqual(decoded.blank,[],'空白圖不該解出 QR');assert.deepEqual(decoded.card,[await page.evaluate(()=>GAME_URL)],'海報 QR 要解出遊戲入口');reports.push('海報 QR 實際解碼');
   const expectedFull=cases.reduce((sum,c,i)=>sum+[50,30,10][Math.abs(i%3-c.answer)]+50,0);
   assert.equal(await page.evaluate(()=>totalScore()),expectedFull,'線索全看完的總分');assert.ok(finishText.includes(`${expectedFull}／600`));
-  const labels=await page.evaluate(()=>{const box=document.querySelector('svg.radar').getBoundingClientRect();return [...document.querySelectorAll('svg.radar text')].every(t=>{const r=t.getBoundingClientRect();return r.left>=box.left-.5&&r.right<=box.right+.5&&r.top>=box.top-.5&&r.bottom<=box.bottom+.5;});});assert.ok(labels,'六角圖文字不可超出圖框');
-  await page.reload();assert.equal(await page.locator('#finish-card').innerText(),finishText);
+  await page.reload();await page.locator('#finish-card').waitFor();assert.equal(await page.locator('#finish-card').getAttribute('alt'),finishText);
   await page.screenshot({path:`${artifactDir}/finish-mobile.png`,fullPage:true});
   // Select the non-native branch explicitly; still use the real browser clipboard.
   await page.evaluate(()=>Object.defineProperty(navigator,'share',{configurable:true,value:undefined}));
   await context.grantPermissions(['clipboard-read','clipboard-write']);
   await page.locator('#share-card').click();await page.waitForFunction(()=>document.getElementById('share-status').textContent.includes('已複製'));
-  const copied=await page.evaluate(()=>navigator.clipboard.readText());assert.ok(copied.includes('茶訊拆招員'));assert.ok(copied.includes('／600'));assert.ok(!copied.includes('127.0.0.1'));assert.ok(!copied.includes('你的判斷'));
+  const copied=await page.evaluate(()=>navigator.clipboard.readText());assert.ok(copied.includes(personaTitle));assert.ok(copied.includes('／600'));assert.ok(!copied.includes('127.0.0.1'));assert.ok(copied.endsWith(await page.evaluate(()=>GAME_URL)),'分享文字帶公開入口');assert.equal(copied.split('\n').length,3,'分享文字只有三行');
   const downloadPromise=page.waitForEvent('download');await page.locator('#save-card').click();const download=await downloadPromise;
-  assert.equal(download.suggestedFilename(),'茶訊拆招員.png');await download.saveAs(`${artifactDir}/通關卡.png`);
+  assert.equal(download.suggestedFilename(),`茶訊調查局-${personaTitle}.png`);await download.saveAs(`${artifactDir}/通關卡.png`);
   for(const viewport of [{width:320,height:568},{width:560,height:720},{width:1280,height:900}]){await page.setViewportSize(viewport);await noOverflow(page);}
   await page.locator('#restart-game').click();await hashIs(page,'#home');assert.equal(await page.getByRole('link',{name:'開始調查',exact:true}).count(),1,'重玩回到首頁');
   assert.ok((await page.evaluate(()=>Object.values(state.cases))).every(p=>p.selected===null&&p.submitted===null));
   await page.goBack();assert.ok(!page.url().endsWith('#finish'),'重玩後不能用返回領取舊通關卡');
-  await context.close();reports.push('六案依序／來源／原答案／各線索／返回／重載／通關／真實剪貼簿／PNG');
+  await context.close();reports.push('六案依序／來源／原答案／各線索／返回／重載／通關海報／真實剪貼簿／PNG');
   // Every case x all three choices, including zero opened clues and repeated submit.
   for(let choice=0;choice<3;choice++){
     const {page,context}=await newPage();await loaded(page,`#case/${cases[0].id}`);
@@ -162,12 +176,11 @@ try{
     },mode);
     // Seed only already-complete session for this branch; primary story above completes through UI.
     await loaded(page);
-    await page.evaluate(()=>{const s=freshState();for(const p of Object.values(s.cases)){p.selected=2;p.submitted=2;}s.finishLine=0;localStorage.setItem(STORAGE_KEY,JSON.stringify(s));});
+    await page.evaluate(()=>{const s=freshState();for(const p of Object.values(s.cases)){p.selected=2;p.submitted=2;}localStorage.setItem(STORAGE_KEY,JSON.stringify(s));});
     await page.reload();await loaded(page,'#finish');await hashIs(page,'#finish');assert.ok(await page.evaluate(()=>shareFile!==null),'通關按鈕出現時 PNG 必須已備妥');
     assert.equal(await page.evaluate(()=>shareCalls.length),0);
-    await page.locator('#share-card').click();assert.equal(await page.evaluate(()=>shareCalls.length),1);
-    assert.equal(await page.evaluate(()=>shareCalls[0].fileCount),1);
-    if(mode==='fail'){await page.locator('#share-fallback').waitFor({state:'visible'});assert.ok((await page.locator('#share-copy').inputValue()).includes('茶訊拆招員'));}
+    await page.locator('#share-card').click();assert.deepEqual(await page.evaluate(()=>shareCalls.map(c=>c.fileCount)),mode==='fail'?[1,0]:[1],'帶圖分享失敗要改用文字再試一次');
+    if(mode==='fail'){await page.locator('#share-fallback').waitFor({state:'visible'});assert.ok((await page.locator('#share-copy').inputValue()).includes(await page.evaluate(()=>persona()[0])));}
     if(mode==='cancel')assert.equal(await page.locator('#share-fallback:visible').count(),0);
     await context.close();
   }
