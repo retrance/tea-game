@@ -346,7 +346,7 @@ function cardCanvas(){
   const W=1080,H=1440,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext('2d');if(!ctx)return null;
   const [title,line]=persona(),cream='#f6f0e2',amber='#f6b93b',font=(weight,size)=>`${weight} ${size}px "Noto Serif TC",serif`;
-  const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#323a42');bg.addColorStop(.7,'#191d21');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#8a2f27');bg.addColorStop(.7,'#4a1613');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
   const cx=540,cy=725,R=170,pt=(i,r)=>radarPoint(i,r,cx,cy);
   const ink='#17231d',tea='#8a4f24';
   ctx.strokeStyle='#f6f0e240';ctx.lineWidth=3;ctx.strokeRect(36,36,W-72,H-72);
@@ -428,8 +428,9 @@ function finish(){
   if(cardData&&document.fonts?.load){
     // 第一張先用現成字型畫好；網頁字型到齊後重畫一次。
     const sample='茶訊調查局我的調查員類型判斷力掃碼換你查／0123456789「」'+persona().join('')+SCENARIOS.map(c=>c.angle).join('');
-    const faces=['700 40px "Noto Serif TC"','900 150px "Noto Serif TC"'].filter(f=>!document.fonts.check(f,sample));
-    if(faces.length)Promise.all(faces.map(f=>document.fonts.load(f,sample))).then(()=>{if(card.isConnected&&prepareCard())card.src=cardData;}).catch(()=>{});
+    // 字型樣式表不擋首屏，可能比通關頁晚到：現在載一次，整頁載完再補一次，卡上才不會混到備用字型。
+    const redraw=()=>Promise.all(['700 40px "Noto Serif TC"','900 150px "Noto Serif TC"'].map(f=>document.fonts.load(f,sample))).then(()=>{if(card.isConnected&&prepareCard())card.src=cardData;}).catch(()=>{});
+    redraw();if(document.readyState!=='complete')window.addEventListener('load',redraw,{once:true});
   }
   const leaves=Array.from({length:10},(_,i)=>h('span',{class:'leaf','aria-hidden':'true',style:`left:${6+i*9.5}%;animation-delay:${(i*7%10)/8+.4}s`},i%3?'🍃':'🍵'));
   return h('section',{class:'finish-page'},leaves,heading('六案查完，結案！','finish-title'),card,h('div',{class:'finish-actions'},h('button',{class:'btn primary',id:'share-card',type:'button',onclick:shareCard},'分享給朋友'),h('button',{class:'btn',id:'save-card',type:'button',onclick:downloadCard},'存成圖片')),h('p',{id:'share-status',class:'share-status',role:'status'},cardData?'長按圖片也可以儲存':''),h('div',{id:'share-fallback',hidden:true},h('label',{for:'share-copy'},'分享文字'),h('textarea',{id:'share-copy',readonly:true,rows:4})),h('button',{class:'text-button',type:'button',id:'restart-game',onclick:restart},'回首頁，再玩一次'));
