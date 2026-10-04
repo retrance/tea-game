@@ -1,66 +1,44 @@
-# 🍵 茶訊調查局 | Tea Rumor Investigation
+# 🍵 茶訊調查局
 
-幫長輩在喝茶保健訊息裡練習「先問出處」的手機網頁遊戲。純靜態單檔 HTML，免登入、免建置、不接後端。
+公開的喝茶訊息判斷短遊戲：六案依序遊玩，先判斷一次，再點開黃色線索、對照調查局的看法，最後領取可分享的判斷力六角圖通關卡。純靜態單檔 HTML，免登入、免建置、不接後端。
 
-## 入口
+## 地圖與真相來源
 
-| 版本 | 檔案 | 線上網址 |
-| --- | --- | --- |
-| 茶訊調查局（第一案，繁體中文） | `index.html` | [retrance.github.io/tea-game/](https://retrance.github.io/tea-game/) |
-| 2026 年春季班版（10 題真假題，中英雙語） | `2026-spring/index.html` | [retrance.github.io/tea-game/2026-spring/](https://retrance.github.io/tea-game/2026-spring/) |
-
-春季班版原樣保存，不再改動。設計方案與六案總表見 [docs/茶訊調查局-第一關改造方案.md](docs/茶訊調查局-第一關改造方案.md)，文案與計分以該文件為準。
-
-## 玩法
-
-讀轉傳訊息 → 給信任分數 → 選第一個行動 → 點出要查的句子 → 打開證據卡比較 → 下最後判斷、再打一次分數 → 看回顧與四項練習分數。遊戲內「上一步」和瀏覽器返回效果相同，可以回頭改答案，分數跟著重算；進度存在同一分頁，重新整理不會不見，「再玩一次」清空。
-
-## 程式結構（`index.html`）
-
-`<script>` 由上到下分成：
-
-1. **`SHARED`**：六案共用、一字不差的部分——階段順序、題目文字、五個行動、三個最後判斷、四項分數名、線索門檻（3 處）、至少打開幾張證據（2 張）、分數起點（50）。
-2. **`SCENARIOS`**：情境資料，一案一個物件（欄位見下節）。
-3. **純狀態邏輯**：`gate()` 集中判斷每階段能不能往下走（選卡門檻在 `canPickEvidence()`）；`computeScores()` 每次都由目前答案重新計算（不累加），限制在 0–100；`feedbackFor()` 依實際選擇取回饋句。
-4. **畫面**：`VIEWS` 每個階段一個函式；資料文字一律走文字節點（`innerHTML` 只用在固定的迴紋針圖示）。
-5. **導覽**：本分頁歷史紀錄第 i 筆就是第 i 階段；前進 `pushState`，遊戲內返回呼叫 `history.back()`，和瀏覽器返回同一條路。換階段後 0.7 秒內不收第二下點擊，防連點跳步。`sessionStorage` 鍵 `tea-investigation:v1`，內容不合法就重開一局。
-
-## 情境資料欄位
-
-| 欄位 | 內容 |
+| 檔案 | 職責 |
 | --- | --- |
-| `id`、`caseLabel`、`title` | 案件代號、畫面上的「第 N 案」、內部題名 |
-| `sourceType` | 訊息卡右上角的來源標示（例：轉傳訊息（教學模擬）） |
-| `messageSegments` | `{ id, text }` 陣列，依序拼成完整訊息；是訊息文字的唯一來源。`\n\n` 表示分段 |
-| `caseNote` | 從「找要查的地方」開始顯示在訊息下方的案卷註記 |
-| `clues` | `{ id, segmentId, kind, hint, scoreDelta }`；`segmentId` 指向可點的片段，`kind` 為 `check`（要查，4 句）或 `skip`（不用查，2 句，不加分） |
-| `actions` | 以共用行動 id 為鍵：`{ result, scoreDelta }` |
-| `evidenceCards` | `{ id, title, sourceType, content, useful, limits, links, result, scoreDelta }`；可對照的那張加 `comparable: true`，按「跟其他資料對對看」才出現的加 `afterCompare: true` |
-| `verdictOptions` | 以共用判斷 id 為鍵：`{ result, scoreDelta }` |
-| `reflection` | `conclusionLabel`（結論印章）、`conclusion`、`checkPoints`（要查的地方） |
-| `learningPoint` | 這一案的招式，例：第一招：先問出處 |
-| `feedback` | 四項分數各自的回饋規則：依序取 `byAction` → `byEvidence` → `byVerdict` → `fallback`，`suffixByAction` 接在句尾 |
-| `references` | `{ id, label, url }`；證據卡的 `links` 以 id 指過來，外部網址只寫這裡 |
+| `index.html` | 可玩介面；`SCENARIOS` 是案件全文、訊息附的資料、線索、回饋、調查局看法與來源的唯一來源 |
+| [短遊戲規格](docs/茶訊調查局-第一關改造方案.md) | 流程、內容邊界與驗收；沿用既有檔名維持連結 |
+| `2026-spring/index.html` | 獨立保留的春季班十題真假題，中英雙語 |
+| `scripts/check.mjs` | 資料、回饋、調查局看法、來源分流、存檔與順序入口的檢查 |
+| `scripts/browser-check.mjs` | 完整瀏覽器流程、線索收集與計分、分享分支、手機版面與鍵盤驗證 |
 
-`scoreDelta` 只寫不為 0 的項，例如 `{ source: 5 }`。
-
-## 新增第 2–6 案
-
-1. 先在方案文件定稿該案的訊息、六句線索（四句要查、兩句不用查）、A／B／C／D 四張卡、各選項結果句、計分與回饋，醫療表述附來源。
-2. 在 `SCENARIOS` 加一個物件，欄位照上表；`actions`、`verdictOptions` 的鍵必須用 `SHARED` 裡的 id。
-3. 選關入口尚未製作：目前固定進 `SCENARIOS[0]`。加第二案時需要一個選關畫面（或網址參數）設定 `state.scenarioId`，畫面、狀態機與計分函式不用改。
-4. 用手機寬度（320／375／430 px）把完整路徑玩一遍，確認分數與回饋句符合方案。
+產品要求以規格為準；實際畫面以 `index.html` 為準。修改需求時同步更新規格與檢查；案件全文不在文件重抄。
 
 ## 本機預覽
 
 ```bash
-python3 -m http.server 8765
+python3 -m http.server 8765 --bind 127.0.0.1
 ```
 
-開 <http://localhost:8765/>。
+開啟 <http://127.0.0.1:8765/>。春季班版在 `/2026-spring/`。本機修改不會自動發布 GitHub Pages。
 
----
+## 路由與存檔
 
-## Motivation (English)
+`#home` 是短首頁，`#case/<案件 id>` 是原訊息，`#review/<案件 id>` 是解析，`#finish` 是通關卡。入口限制遵照[短遊戲規格](docs/茶訊調查局-第一關改造方案.md)。
 
-In Taiwan, LINE and Facebook groups are full of misleading health tips. This large-type, touch-friendly game helps seniors practise one habit before forwarding a tea-and-health message: ask where it came from. The current homepage is Traditional Chinese only; the bilingual 2026 spring edition remains at `/2026-spring/`.
+遊玩資料保存在 `localStorage` 的 `tea-investigation:v4`，關掉分頁再回來可以接著玩：各案 `selected`（草稿）、`submitted`（原判斷）、`active`（展開的線索）、`seen`（看過的線索），以及 `finishLine`（通關短句）。舊版存檔不換算也不刪除；儲存不可用時仍能玩，提示刷新會重新開始。恢復存檔只接受連續完成的案件，不讓損壞資料造成跳案。
+
+## 案件資料
+
+`SCENARIOS` 包含 `id`、`title`、`context`、`angle`（判斷角度）、`answer`（調查局的看法）、`segments`、`attachment`、`references`、`finding`、`feedback`、`todo`。共用判斷詞由 `VERDICTS` 定義，`answer` 是它的索引，`feedback` 與它的順序相同。計分規則只在 `scoreOf`。
+
+片段由一般文字 `{ text }` 或線索 `{ id, text, hint, basis, ref }` 組成。`basis` 為 `message`（訊息本身）、`attachment`（訊息附的資料）或 `check`（解析另外查證）。`ref` 指向同案來源的 `id`；附件也以 `ref` 指向來源。判斷前只生成文字與中性附件，解析才生成線索元件。所有文字透過 DOM 文字節點輸出。
+
+## 驗證
+
+```bash
+node scripts/check.mjs
+node scripts/browser-check.mjs
+```
+
+瀏覽器檢查使用 Playwright 與 Chromium；若環境沒有本地套件，可用 `PLAYWRIGHT_PACKAGE` 指向既有的 Playwright 套件目錄，`CHROME_PATH` 指向 Chrome 執行檔。測試網址預設 `http://127.0.0.1:8765`，可用 `GAME_URL` 指定。真人試玩、實機覆核與發布要求見規格的驗收段落。

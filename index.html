@@ -1,1768 +1,392 @@
 <!DOCTYPE html>
 <html lang="zh-Hant-TW">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>茶訊調查局｜第一案</title>
-    <meta name="description" content="收到一則喝茶保健的轉傳訊息。跟著線索查一查，練習判斷訊息可不可信。">
-    <meta name="author" content="山茗主義 Summit Tea">
-    <meta property="og:title" content="茶訊調查局｜第一案">
-    <meta property="og:description" content="收到一則喝茶保健的轉傳訊息。跟著線索查一查。🍵">
-    <meta property="og:type" content="website">
-    <meta name="theme-color" content="#F4F0EC">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍵</text></svg>">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Playfair+Display:wght@700;900&family=Noto+Serif+TC:wght@500;700;900&display=swap"
-        rel="stylesheet">
-    <style>
-        /* ========== 樣式 ========== */
-        :root {
-            --paper: #F4F0EC;
-            --folder: #EADFC8;
-            --card: #FFFFFF;
-            --ink: #111111;
-            --muted: #55504A;
-            --red: #E34234;
-            --green: #008B45;
-            --mark: #FFF3A8;
-            --line: 3px solid var(--ink);
-            --serif: 'Playfair Display', 'Noto Serif TC', serif;
-            --mono: 'Space Mono', 'Noto Serif TC', monospace;
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-        }
-
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-padding-bottom: 150px;
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
-        }
-
-        body {
-            margin: 0;
-            font-family: var(--serif);
-            font-weight: 500;
-            font-size: 18px;
-            line-height: 1.7;
-            color: var(--ink);
-            background-color: var(--paper);
-            background-image: radial-gradient(rgba(17, 17, 17, .55) 1px, transparent 1px);
-            background-size: 30px 30px;
-            -webkit-tap-highlight-color: transparent;
-            overflow-x: hidden;
-        }
-
-        ::selection {
-            background: var(--red);
-            color: #fff;
-        }
-
-        button {
-            font: inherit;
-            color: inherit;
-        }
-
-        :focus-visible {
-            outline: 3px solid var(--red);
-            outline-offset: 3px;
-        }
-
-        [tabindex="-1"]:focus {
-            outline: none;
-        }
-
-        .page {
-            max-width: 640px;
-            margin: 0 auto;
-            padding: 20px 16px 0;
-            min-height: 100vh;
-            min-height: 100dvh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
-            clip: rect(0 0 0 0);
-            white-space: nowrap;
-        }
-
-        /* 報頭 */
-        .masthead {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 12px;
-            border-bottom: 4px solid var(--ink);
-            padding-bottom: 10px;
-        }
-
-        .masthead h1 {
-            margin: 0;
-            font-size: clamp(34px, 11vw, 52px);
-            font-weight: 900;
-            line-height: 1.05;
-            letter-spacing: -.02em;
-        }
-
-        .seal {
-            flex: none;
-            width: 52px;
-            height: 52px;
-            border: 3px solid var(--ink);
-            border-radius: 50%;
-            background: var(--ink);
-            color: var(--paper);
-            display: grid;
-            place-items: center;
-            font-weight: 900;
-            font-size: 24px;
-            transform: rotate(-8deg);
-        }
-
-        .progress {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 12px;
-            font-family: var(--mono);
-            font-weight: 700;
-            font-size: 15px;
-        }
-
-        .progress[hidden] {
-            display: none;
-        }
-
-        .progress-bar {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-        }
-
-        .progress-bar span {
-            height: 10px;
-            border: 2px solid var(--ink);
-            background: var(--card);
-        }
-
-        .progress-bar span.on {
-            background: var(--ink);
-        }
-
-        /* 案卷夾 */
-        .folder {
-            position: relative;
-            margin: 44px 0 24px;
-            background: var(--folder);
-            border: var(--line);
-            box-shadow: 8px 8px 0 var(--ink);
-            padding: 20px 16px 24px;
-        }
-
-        .folder-tab {
-            position: absolute;
-            left: -3px;
-            top: -35px;
-            height: 35px;
-            padding: 4px 18px 0;
-            background: var(--folder);
-            border: var(--line);
-            border-bottom: none;
-            font-family: var(--mono);
-            font-weight: 700;
-            font-size: 15px;
-        }
-
-        .phase-title {
-            margin: 0 0 16px;
-            font-size: 26px;
-            font-weight: 900;
-            line-height: 1.35;
-        }
-
-        .phase-title.big {
-            font-size: 40px;
-            letter-spacing: .04em;
-        }
-
-        .block {
-            margin-top: 22px;
-        }
-
-        .label {
-            display: inline-block;
-            font-family: var(--mono);
-            font-weight: 700;
-            font-size: 14px;
-            background: var(--ink);
-            color: var(--paper);
-            padding: 2px 8px;
-            letter-spacing: .04em;
-        }
-
-        /* 被夾住的訊息卡 */
-        .message {
-            position: relative;
-            background: var(--card);
-            border: var(--line);
-            padding: 26px 14px 16px;
-            transform: rotate(-.6deg);
-            box-shadow: 4px 4px 0 rgba(17, 17, 17, .25);
-        }
-
-        .clip {
-            position: absolute;
-            top: -22px;
-            left: 22px;
-            width: 22px;
-            height: 50px;
-            pointer-events: none;
-        }
-
-        .message-type {
-            font-family: var(--mono);
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--muted);
-            margin-bottom: 8px;
-            text-align: right;
-        }
-
-        .bubble {
-            position: relative;
-            background: #F6F6F2;
-            border: 2px solid var(--ink);
-            padding: 12px 14px;
-            margin-left: 10px;
-            white-space: pre-line;
-            overflow-wrap: anywhere;
-            font-size: 19px;
-            line-height: 1.85;
-        }
-
-        .bubble::before {
-            content: "";
-            position: absolute;
-            left: -12px;
-            top: 14px;
-            border-width: 8px 12px 8px 0;
-            border-style: solid;
-            border-color: transparent var(--ink) transparent transparent;
-        }
-
-        .bubble.hunt {
-            line-height: 2.2;
-        }
-
-        .para-break {
-            display: block;
-            height: .5em;
-        }
-
-        /* 線索句：上下留白撐出觸控區，底線與底色畫在背景裡才不會離字太遠 */
-        .seg {
-            cursor: pointer;
-            padding: 11px 1px;
-            background:
-                linear-gradient(to right, var(--ink) 55%, transparent 55%) 0 77% / 7px 2px repeat-x,
-                linear-gradient(transparent 25%, var(--mark) 25%, var(--mark) 75%, transparent 75%);
-            -webkit-box-decoration-break: clone;
-            box-decoration-break: clone;
-        }
-
-        .seg.check {
-            background:
-                linear-gradient(var(--ink), var(--ink)) 0 78% / 100% 3px no-repeat,
-                linear-gradient(transparent 25%, var(--mark) 25%, var(--mark) 75%, transparent 75%);
-        }
-
-        .seg.skip {
-            color: var(--muted);
-            background: linear-gradient(#9A948C, #9A948C) 0 77% / 100% 2px no-repeat;
-        }
-
-        .nowrap {
-            white-space: nowrap;
-        }
-
-        .seg-static {
-            padding: 0;
-            cursor: default;
-            background-position: 0 100%, 0 0;
-        }
-
-        .tag {
-            display: inline-block;
-            margin: 0 3px;
-            padding: 0 6px;
-            font-family: var(--mono);
-            font-size: 13px;
-            font-weight: 700;
-            line-height: 1.6;
-            vertical-align: 2px;
-            white-space: nowrap;
-            border: 2px solid currentColor;
-        }
-
-        .tag.check {
-            color: var(--ink);
-        }
-
-        .tag.skip {
-            color: var(--muted);
-        }
-
-        .hint {
-            display: block;
-            white-space: normal;
-            margin: 6px 0 10px;
-            padding: 8px 10px;
-            background: var(--card);
-            border: 2px solid var(--ink);
-            border-left: 6px solid var(--ink);
-            font-size: 17px;
-            line-height: 1.6;
-        }
-
-        .hint.skip {
-            border-left-color: #9A948C;
-        }
-
-        .note {
-            margin: 18px 0 0;
-            padding: 10px 12px;
-            background: var(--card);
-            border: 2px dashed var(--ink);
-            font-size: 17px;
-        }
-
-        .note b {
-            font-family: var(--mono);
-            font-size: 14px;
-            margin-right: 6px;
-        }
-
-        details.recall {
-            margin-bottom: 20px;
-        }
-
-        details.recall>summary {
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            list-style: none;
-            font-weight: 700;
-            border: 2px solid var(--ink);
-            background: var(--card);
-            padding: 6px 12px;
-        }
-
-        details.recall>summary::-webkit-details-marker {
-            display: none;
-        }
-
-        details.recall>summary::after {
-            content: "▾";
-            margin-left: auto;
-        }
-
-        details.recall[open]>summary::after {
-            content: "▴";
-        }
-
-        details.recall .message {
-            margin-top: 28px;
-        }
-
-        /* 選項 */
-        .options {
-            display: grid;
-            gap: 12px;
-        }
-
-        .option {
-            min-height: 56px;
-            width: 100%;
-            padding: 10px 16px;
-            text-align: left;
-            font-size: 20px;
-            font-weight: 700;
-            background: var(--card);
-            border: var(--line);
-            box-shadow: 5px 5px 0 var(--ink);
-            cursor: pointer;
-            transition: transform .08s, box-shadow .08s;
-        }
-
-        .option:active {
-            transform: translate(5px, 5px);
-            box-shadow: 0 0 0 var(--ink);
-        }
-
-        .option[aria-pressed="true"] {
-            background: var(--ink);
-            color: var(--paper);
-        }
-
-        @media (min-width: 560px) {
-            .options.row {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .options.row .option {
-                text-align: center;
-            }
-        }
-
-        .result {
-            margin-top: 16px;
-            padding: 12px 14px;
-            background: var(--card);
-            border: var(--line);
-            border-left-width: 8px;
-            font-size: 18px;
-        }
-
-        /* 滑桿 */
-        .belief {
-            background: var(--card);
-            border: var(--line);
-            padding: 14px 14px 10px;
-        }
-
-        .belief-value {
-            font-family: var(--mono);
-            font-weight: 700;
-            font-size: 30px;
-            text-align: center;
-            line-height: 1.3;
-        }
-
-        .belief.untouched .belief-value {
-            color: var(--muted);
-            font-size: 22px;
-        }
-
-        .belief input[type=range] {
-            -webkit-appearance: none;
-            appearance: none;
-            display: block;
-            width: 100%;
-            height: 48px;
-            margin: 6px 0 0;
-            background: transparent;
-            cursor: pointer;
-            touch-action: pan-y;
-        }
-
-        .belief input[type=range]::-webkit-slider-runnable-track {
-            height: 12px;
-            background: var(--paper);
-            border: 2px solid var(--ink);
-        }
-
-        .belief input[type=range]::-moz-range-track {
-            height: 8px;
-            background: var(--paper);
-            border: 2px solid var(--ink);
-        }
-
-        .belief input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 36px;
-            height: 36px;
-            margin-top: -14px;
-            background: var(--ink);
-            border: 3px solid var(--ink);
-            border-radius: 0;
-        }
-
-        .belief input[type=range]::-moz-range-thumb {
-            width: 30px;
-            height: 30px;
-            background: var(--ink);
-            border: 3px solid var(--ink);
-            border-radius: 0;
-        }
-
-        .belief.untouched input[type=range]::-webkit-slider-thumb {
-            background: var(--card);
-            border-style: dashed;
-        }
-
-        .belief.untouched input[type=range]::-moz-range-thumb {
-            background: var(--card);
-            border-style: dashed;
-        }
-
-        .belief-ends {
-            display: flex;
-            justify-content: space-between;
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        /* 證據卡 */
-        .cards {
-            display: grid;
-            gap: 16px;
-        }
-
-        .ecard {
-            background: var(--card);
-            border: var(--line);
-        }
-
-        .ecard.selected {
-            box-shadow: 6px 6px 0 var(--ink);
-            border-width: 4px;
-        }
-
-        .ecard-head {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            min-height: 60px;
-            padding: 8px 12px 8px 0;
-            text-align: left;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 20px;
-            font-weight: 900;
-        }
-
-        .ecard-letter {
-            flex: none;
-            align-self: stretch;
-            display: grid;
-            place-items: center;
-            width: 48px;
-            margin: -8px 0;
-            background: var(--ink);
-            color: var(--paper);
-            font-family: var(--mono);
-            font-size: 22px;
-        }
-
-        .ecard-head .chev {
-            margin-left: auto;
-            font-family: var(--mono);
-            font-size: 14px;
-            white-space: nowrap;
-        }
-
-        .ecard-body {
-            border-top: 2px solid var(--ink);
-            padding: 12px 14px 16px;
-        }
-
-        .ecard-body dl {
-            margin: 10px 0 0;
-        }
-
-        .ecard-body dt {
-            margin-top: 12px;
-            font-family: var(--mono);
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .ecard-body dd {
-            margin: 2px 0 0;
-        }
-
-        .ecard-body dd a {
-            display: inline-block;
-            min-height: 44px;
-            padding: 8px 0;
-            color: var(--ink);
-            font-weight: 700;
-            text-underline-offset: 4px;
-        }
-
-        .ecard-actions {
-            display: grid;
-            gap: 10px;
-            margin-top: 16px;
-        }
-
-        .btn {
-            min-height: 52px;
-            width: 100%;
-            padding: 8px 16px;
-            font-size: 19px;
-            font-weight: 700;
-            background: var(--card);
-            border: var(--line);
-            box-shadow: 4px 4px 0 var(--ink);
-            cursor: pointer;
-        }
-
-        .btn:active {
-            transform: translate(4px, 4px);
-            box-shadow: none;
-        }
-
-        .btn[aria-pressed="true"] {
-            background: var(--ink);
-            color: var(--paper);
-        }
-
-        .btn[aria-disabled="true"] {
-            color: var(--muted);
-            border-style: dashed;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-
-        .btn[aria-disabled="true"]:active {
-            transform: none;
-        }
-
-        /* 反思與分數 */
-        .shift {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            gap: 8px;
-            background: var(--card);
-            border: var(--line);
-            padding: 14px 10px;
-            text-align: center;
-        }
-
-        .shift small {
-            display: block;
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        .shift strong {
-            font-family: var(--mono);
-            font-size: 36px;
-            line-height: 1.2;
-        }
-
-        .shift .arrow {
-            font-size: 28px;
-            font-weight: 900;
-        }
-
-        .facts {
-            margin: 22px 0 0;
-            display: grid;
-            gap: 18px;
-        }
-
-        .fact {
-            margin: 6px 0 0;
-            font-size: 21px;
-            font-weight: 900;
-        }
-
-        .facts .result {
-            margin-top: 8px;
-        }
-
-        .verdict-box {
-            position: relative;
-            background: var(--card);
-            border: var(--line);
-            padding: 16px 14px 14px;
-        }
-
-        .stamp {
-            display: inline-block;
-            margin-bottom: 8px;
-            padding: 2px 10px;
-            border: 3px solid var(--ink);
-            color: var(--ink);
-            font-weight: 900;
-            font-size: 22px;
-            transform: rotate(-3deg);
-        }
-
-        .move {
-            background: var(--ink);
-            color: var(--paper);
-            padding: 16px;
-            font-size: 26px;
-            font-weight: 900;
-            text-align: center;
-            box-shadow: 6px 6px 0 var(--red);
-        }
-
-        .checklist {
-            margin: 10px 0 0;
-            padding: 0;
-            list-style: none;
-            counter-reset: n;
-            display: grid;
-            gap: 8px;
-        }
-
-        .checklist li {
-            counter-increment: n;
-            display: flex;
-            gap: 10px;
-            background: var(--card);
-            border: 2px solid var(--ink);
-            padding: 8px 12px;
-        }
-
-        .checklist li::before {
-            content: counter(n);
-            flex: none;
-            font-family: var(--mono);
-            font-weight: 700;
-            color: var(--red);
-        }
-
-        .scores {
-            display: grid;
-            gap: 14px;
-        }
-
-        .score {
-            background: var(--card);
-            border: var(--line);
-            padding: 12px 14px 14px;
-        }
-
-        .score-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            font-weight: 900;
-            font-size: 21px;
-        }
-
-        .score-head span {
-            font-family: var(--mono);
-            font-size: 26px;
-        }
-
-        .meter {
-            height: 14px;
-            margin: 6px 0 10px;
-            border: 2px solid var(--ink);
-            background: var(--paper);
-        }
-
-        .meter i {
-            display: block;
-            height: 100%;
-            background: var(--ink);
-        }
-
-        .score p {
-            margin: 0;
-        }
-
-        .credit {
-            margin: 0 0 16px;
-            text-align: center;
-            font-size: 15px;
-            color: var(--muted);
-        }
-
-        .credit a {
-            display: inline-block;
-            min-height: 44px;
-            padding: 10px 4px;
-            color: var(--ink);
-        }
-
-        /* 底部操作列 */
-        .actionbar {
-            position: sticky;
-            bottom: 0;
-            z-index: 5;
-            margin: auto -16px 0;
-            padding: 10px 16px calc(12px + var(--safe-bottom));
-            background: var(--paper);
-            border-top: var(--line);
-        }
-
-        .actionbar-hint {
-            margin: 0 0 8px;
-            font-weight: 700;
-            color: var(--muted);
-            font-size: 17px;
-            text-align: center;
-        }
-
-        .actionbar-hint.nudge {
-            color: var(--red);
-        }
-
-        .actionbar-hint {
-            line-height: 1.6;
-            min-height: 1.6em;
-        }
-
-        .actionbar-row {
-            display: flex;
-        }
-
-        .actionbar-row .back {
-            margin-right: 12px;
-        }
-
-        .nav {
-            min-height: 56px;
-            padding: 8px 16px;
-            font-size: 20px;
-            font-weight: 900;
-            border: var(--line);
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .nav.back {
-            flex: none;
-            background: var(--card);
-        }
-
-        .nav.back.gone {
-            visibility: hidden;
-        }
-
-        .nav.primary {
-            flex: 1;
-            background: var(--ink);
-            color: var(--paper);
-            box-shadow: 4px 4px 0 var(--red);
-        }
-
-        .nav.primary:active {
-            transform: translate(4px, 4px);
-            box-shadow: none;
-        }
-
-        .nav.primary[aria-disabled="true"] {
-            background: #8A847D;
-            border-color: #8A847D;
-            box-shadow: none;
-        }
-
-        /* 動態 */
-        .enter {
-            animation: enter .45s cubic-bezier(.19, 1, .22, 1) both;
-        }
-
-        .pop {
-            animation: pop .35s ease-out both;
-        }
-
-        .nudge {
-            animation: nudge .35s ease-in-out;
-        }
-
-        @keyframes enter {
-            from {
-                opacity: 0;
-                transform: translateY(14px);
-            }
-
-            to {
-                opacity: 1;
-                transform: none;
-            }
-        }
-
-        @keyframes pop {
-            from {
-                opacity: 0;
-                transform: scale(.97);
-            }
-
-            to {
-                opacity: 1;
-                transform: none;
-            }
-        }
-
-        @keyframes nudge {
-
-            0%,
-            100% {
-                transform: none;
-            }
-
-            25% {
-                transform: translateX(-6px);
-            }
-
-            75% {
-                transform: translateX(6px);
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-
-            .enter,
-            .pop,
-            .nudge {
-                animation: none;
-            }
-
-            .message {
-                transform: none;
-            }
-        }
-
-        @media (min-width: 560px) {
-            .page {
-                padding-top: 36px;
-            }
-
-            .folder {
-                padding: 28px 28px 32px;
-            }
-
-            .actionbar {
-                margin-left: 0;
-                margin-right: 0;
-                border: var(--line);
-                border-bottom: none;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>茶訊調查局｜喝茶的消息，查一查</title>
+<meta name="description" content="群組裡常見的喝茶健康消息，哪些是真的？先選你的看法，再看調查局查到什麼。">
+<meta name="author" content="山茗主義 Summit Tea">
+<meta property="og:title" content="茶訊調查局｜喝茶的消息，查一查">
+<meta property="og:description" content="先說出你的看法，再點開線索，最後領一張判斷力六角圖。">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#F4F0EC">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🍵%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f4f0ec;--ink:#252820;--muted:#626459;--green:#315b45;--folder:#e9e3d5;--line:#c8c9bb;--tea:#8a4f24;--card:#fffdf8;--result:#f4e8d6;--mark:#fcf2c0;--serif:'Noto Serif TC',serif;--safe:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-padding:14px 0 105px;-webkit-text-size-adjust:100%}body{margin:0;color:var(--ink);background:var(--paper);font-family:var(--serif);font-size:18px;line-height:1.75;background-image:radial-gradient(#7772 .65px,transparent .65px);background-size:7px 7px}
+button,input,a,summary{touch-action:manipulation}button,input,textarea{font:inherit}button,a{color:inherit}button{cursor:pointer}a{text-underline-offset:4px}button:focus-visible,[role='button']:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,textarea:focus-visible{outline:3px solid var(--green);outline-offset:4px}[hidden]{display:none!important}[tabindex='-1']:focus{outline:none}
+.shell{max-width:960px;padding:0 28px;margin:auto}.masthead{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:24px 0 18px;border-bottom:2px solid var(--ink)}.brand{font-size:24px;font-weight:900;letter-spacing:.06em}
+.hero{padding:54px 0 44px;max-width:520px}.eyebrow{font-size:16px;letter-spacing:.06em;font-weight:700;color:var(--muted);margin:0 0 12px}.hero-title{white-space:pre-line;font-size:clamp(32px,5.8vw,52px);line-height:1.4;letter-spacing:-.02em;margin:0 0 20px}.chat{display:grid;gap:10px;margin:0 0 26px}.bubble{display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:start;opacity:0;animation:pop .45s ease-out forwards}.bubble:nth-child(1){animation-delay:.2s}.bubble:nth-child(2){animation-delay:.9s}.bubble:nth-child(3){animation-delay:1.6s}.bubble:nth-child(4){animation-delay:2.3s}.avatar{width:40px;height:40px;border-radius:50%;background:var(--result);color:var(--tea);display:grid;place-items:center;font-weight:700}.bubble p{margin:0;justify-self:start;background:var(--card);border:1px solid var(--line);border-radius:4px 16px 16px 16px;padding:8px 14px;font-size:17px;line-height:1.6}.typing i{display:inline-block;width:7px;height:7px;margin:0 2px;border-radius:50%;background:var(--muted);animation:blink 1.4s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}@keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:10px 22px;border:1px solid var(--ink);border-radius:4px;background:transparent;text-decoration:none;font-weight:700;line-height:1.4}.btn.primary{background:var(--green);color:white;border-color:var(--green)}.btn:hover{background:var(--folder)}.btn.primary:hover{background:#244632}.hero .btn{min-width:180px}
+.footer{margin-top:24px;padding:20px 0 28px;border-top:1px solid var(--line);color:var(--muted);font-size:16px}.footer summary{cursor:pointer;min-height:44px;display:list-item;align-content:center}.footer p{max-width:680px}body[data-view='case'] .footer,body[data-view='review'] .footer{display:none}.notice{padding:12px 16px;background:var(--folder);font-size:16px;border-left:3px solid var(--ink)}
+.case-page{max-width:700px;margin:28px auto 0;padding-bottom:120px}.case-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.case-heading .eyebrow{margin:0}.case-dots{display:flex;gap:6px}.case-dots span{width:8px;height:8px;border:1px solid var(--muted);border-radius:50%}.case-dots .filled{background:var(--muted)}h1.case-title{font-size:clamp(26px,4.8vw,36px);line-height:1.45;margin:0 0 22px}
+.message{background:var(--card);border:1px solid var(--line);padding:24px;margin:0 0 28px}.message .label{color:var(--muted);font-size:16px;letter-spacing:.04em;margin:0 0 14px}.message-text{font-size:20px;line-height:1.95;margin:0;overflow-wrap:anywhere}.attachment{border-top:1px solid var(--line);margin-top:20px;padding-top:16px;font-size:16px;line-height:1.75}.attachment p{margin:0 0 8px}.attachment .attachment-label{font-size:16px;font-weight:700;color:var(--muted)}.attachment a{display:inline-block;min-height:44px;align-content:center;overflow-wrap:anywhere;font-size:16px}
+.clue{background-color:var(--mark);background-clip:content-box;padding:10px 0;text-decoration:underline dotted 2px var(--tea);text-underline-offset:6px;cursor:pointer;-webkit-box-decoration-break:clone;box-decoration-break:clone;transition:background-color .5s}.clue.seen{background-color:transparent;text-decoration-style:solid}.clue.seen:after{content:' ✓';color:var(--green);font-size:.8em;font-weight:700}.clue[aria-expanded='true']{background-color:var(--folder)}.clue-note{display:block;margin:10px 0 16px;padding:14px 16px;background:var(--folder);border-left:3px solid var(--tea);font-size:16px;line-height:1.75}.hint-source{display:block;font-size:16px;margin-top:6px}.hint-source a{display:inline-block;min-height:44px;align-content:center;overflow-wrap:anywhere}
+.verdict{border:0;margin:0;padding:0;min-width:0;scroll-margin-top:24px}.verdict legend{font-size:22px;font-weight:700;line-height:1.5;margin-bottom:16px}.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.choice{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;background:#fff7;border:2px solid var(--line);border-radius:4px;padding:8px 4px;min-height:60px;font-weight:700;line-height:1.4;cursor:pointer}.choice.checked{background:var(--green);border-color:var(--green);color:white}.choice:has(input:focus-visible){outline:3px solid var(--green);outline-offset:4px}.choice input{position:absolute;opacity:0;width:1px;height:1px;margin:0}.actionbar{position:fixed;bottom:0;left:0;right:0;background:#f4f0ecf7;border-top:1px solid var(--line);padding:12px 20px calc(12px + var(--safe));z-index:5}.actionbar>div{display:flex;gap:12px;max-width:700px;margin:auto}.actionbar .btn{flex:1}.form-error{margin:12px 0 0;font-size:16px;color:#8b342a}
+.feedback{background:var(--result);border-top:3px solid var(--tea);padding:20px 24px;margin:0 0 22px}.feedback.plain{background:transparent;border:1px solid var(--line)}.feedback h2{font-size:22px;line-height:1.5;margin:0 0 8px}.feedback p{margin:0;font-size:17px}.todo strong{display:block;color:var(--muted);font-size:16px}.reveal-heading{margin-bottom:12px;font-size:16px}.reveal-heading p{margin:0;font-weight:700}.reveal-heading .swatch{background:var(--mark);text-decoration:underline dotted 2px var(--tea);text-underline-offset:6px;color:var(--ink)}.saved-choice{font-size:16px;color:var(--muted)}.text-button{background:none;border:0;text-decoration:underline;min-height:44px;padding:8px 4px;font-size:16px;color:var(--muted)}
+.finish-page{max-width:590px;margin:32px auto 0;text-align:center}.finish-card{border:2px solid var(--ink);padding:32px 24px 24px;background:var(--card);box-shadow:7px 7px 0 var(--folder);position:relative}.finish-title{white-space:pre-line;font-size:clamp(27px,5vw,40px);line-height:1.45;margin:12px 0 10px}.radar{display:block;width:100%;max-width:340px;margin:0 auto 10px}.radar-ring,.radar-axis{fill:none;stroke:var(--line)}.radar-area{fill:#315b4540;stroke:var(--green);stroke-width:2}.radar text{font-family:var(--serif);fill:var(--ink);font-size:19px;font-weight:700}.radar .num{fill:var(--green)}.finish-rank{font-size:21px;font-weight:900;margin:0 0 4px}.finish-best{font-size:16px;margin:0 0 14px}.finish-quote{font-size:18px;margin:0 0 14px}.finish-signature{font-size:16px;letter-spacing:.12em;color:var(--muted);margin:0}.finish-actions{display:flex;justify-content:center;gap:12px;margin-top:28px}.share-status{font-size:16px;min-height:25px;margin:12px 0 0;color:var(--muted)}#share-fallback{text-align:left;font-size:16px}#share-copy{display:block;width:100%;padding:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;resize:vertical}.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:600px){.shell{padding:0 18px}.masthead{padding:16px 0 12px;gap:8px}.brand{font-size:21px;letter-spacing:.02em}.hero{padding:30px 0 24px}.hero-title{font-size:min(32px,8.4vw);margin-bottom:16px}.hero .btn{width:100%}.footer{margin-top:24px}.case-page{margin-top:20px}.message{padding:18px 16px}.message-text{font-size:18px}.attachment{font-size:16px}.actionbar{padding-left:14px;padding-right:14px}.feedback{padding:16px 18px}.feedback h2{font-size:22px}.feedback p{font-size:16px}.finish-page{margin-top:24px}.finish-card{padding:24px 16px 20px}.finish-title{font-size:27px}.finish-quote{font-size:16px}.finish-actions{gap:9px;margin-top:22px}.finish-actions .btn{padding:10px 12px;flex:1;font-size:16px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}.bubble{opacity:1}}
+</style>
 </head>
-
 <body>
-    <div class="page">
-        <header class="masthead">
-            <h1>茶訊調查局</h1>
-            <div class="seal" aria-hidden="true">查</div>
-        </header>
-        <div class="progress" id="progress" hidden>
-            <span id="progress-text"></span>
-            <div class="progress-bar" id="progress-bar" aria-hidden="true"></div>
-        </div>
-
-        <main class="folder">
-            <div class="folder-tab" aria-hidden="true">案卷</div>
-            <div id="screen"></div>
-        </main>
-
-        <p class="credit" id="credit" hidden>由<a href="https://www.facebook.com/SummitTeaTW" target="_blank"
-                rel="noopener noreferrer">山茗主義</a>製作</p>
-
-        <nav class="actionbar" aria-label="調查步驟">
-            <p class="actionbar-hint" id="gate-hint" aria-live="polite"></p>
-            <div class="actionbar-row">
-                <button type="button" class="nav back" id="btn-back">上一步</button>
-                <button type="button" class="nav primary" id="btn-next"></button>
-            </div>
-        </nav>
-    </div>
-
-    <p id="live" class="sr-only" aria-live="polite"></p>
-
-    <noscript>
-        <p style="padding:16px;font-size:18px">這個遊戲需要開啟 JavaScript 才能玩。</p>
-    </noscript>
-
-    <script>
-        'use strict';
-
-        /* ========== 共用設定（六案一字不差） ========== */
-        const SHARED = {
-            phases: ['MESSAGE', 'INITIAL_BELIEF', 'ACTION', 'CLUE_HUNT', 'EVIDENCE', 'FINAL_VERDICT', 'REFLECTION', 'RESULT'],
-            prompts: {
-                INITIAL_BELIEF: '這則訊息，你信幾分？',
-                ACTION: '看到這則訊息，你會先怎麼做？',
-                CLUE_HUNT: '哪幾句要查一下？點點看。',
-                EVIDENCE: '這些資料，哪一份最能幫你判斷？',
-                FINAL_VERDICT: '查完之後，你覺得這則訊息……',
-                finalBelief: '現在你信幾分？',
-                REFLECTION: '回顧',
-                RESULT: '這一案的練習分數（僅供參考）'
-            },
-            nextLabels: {
-                MESSAGE: '開始調查',
-                INITIAL_BELIEF: '下一步',
-                ACTION: '繼續調查',
-                CLUE_HUNT: '下一步',
-                EVIDENCE: '下一步',
-                FINAL_VERDICT: '送出',
-                REFLECTION: '看分數',
-                RESULT: '再玩一次'
-            },
-            beliefEnds: ['完全不信', '完全相信'],
-            scores: [
-                { id: 'source', label: '查來源' },
-                { id: 'evidence', label: '看證據' },
-                { id: 'calibration', label: '下判斷' },
-                { id: 'spread', label: '轉不轉' }
-            ],
-            actions: [
-                { id: 'forward', label: '轉給家人' },
-                { id: 'ignore', label: '不理它' },
-                { id: 'source', label: '問是哪裡來的' },
-                { id: 'search', label: '上網查一下' },
-                { id: 'hold', label: '先不決定' }
-            ],
-            verdicts: [
-                { id: 'credible', label: '應該是真的' },
-                { id: 'insufficient', label: '還不確定' },
-                { id: 'suspicious', label: '應該是假的' }
-            ],
-            clueGoal: 3,
-            minEvidenceRead: 2,
-            scoreBase: 50
-        };
-
-        /* ========== 情境資料（一案一物件；文案來源：docs/茶訊調查局-第一關改造方案.md） ========== */
-        const SCENARIOS = [
-            {
-                id: 'puer-28-days',
-                caseLabel: '第一案',
-                title: '普洱茶 28 天清血管',
-                sourceType: '轉傳訊息（教學模擬）',
-                messageSegments: [
-                    { id: 'm1', text: '阿姨剛轉來，給大家參考一下🍵\n\n前陣子看到一篇分享，說' },
-                    { id: 's-study', text: '日本有醫學研究' },
-                    { id: 'm2', text: '發現，每天喝三杯普洱茶，對清掉血管裡的油脂有幫助。連續喝 ' },
-                    { id: 's-days', text: '28 天' },
-                    { id: 'm3', text: '，血管狀況甚至可能「' },
-                    { id: 's-young', text: '年輕十歲' },
-                    { id: 'm4', text: '」。\n\n我' },
-                    { id: 's-doctor', text: '朋友的醫師' },
-                    { id: 'm5', text: '也說，' },
-                    { id: 's-tea', text: '平常喝茶對心血管不錯' },
-                    { id: 'm6', text: '。' },
-                    { id: 's-family', text: '家裡有長輩的可以留意一下' },
-                    { id: 'm7', text: '；覺得有用也轉給親友看看❤️' }
-                ],
-                caseNote: '這則訊息沒有附研究名字，也沒有連結。',
-                clues: [
-                    { id: 'study', segmentId: 's-study', kind: 'check', hint: '哪個研究？誰做的？都沒寫。沒有名字，就查不到。', scoreDelta: { source: 5 } },
-                    { id: 'doctor', segmentId: 's-doctor', kind: 'check', hint: '這是聽朋友說的。醫師只說喝茶不錯，沒說 28 天能清血管。', scoreDelta: { source: 5 } },
-                    { id: 'days', segmentId: 's-days', kind: 'check', hint: '28 天說得很具體，但幾個人試過？怎麼量的？都沒寫。', scoreDelta: { evidence: 5 } },
-                    { id: 'young', segmentId: 's-young', kind: 'check', hint: '血管要怎麼量出「年輕十歲」？沒有說。講得越神奇，越要找出處。', scoreDelta: { evidence: 5 } },
-                    { id: 'tea', segmentId: 's-tea', kind: 'skip', hint: '這句說得很保守，沒講什麼神奇效果。' },
-                    { id: 'family', segmentId: 's-family', kind: 'skip', hint: '這句是關心，沒講到什麼事實。' }
-                ],
-                actions: {
-                    forward: { result: '已轉出（模擬）。家人問你：是哪個研究？你答不出來。', scoreDelta: { spread: -20 } },
-                    ignore: { result: '沒回，也沒轉。但沒查過，下次換個說法傳來，還是分不出真假。', scoreDelta: { calibration: -10, spread: 10 } },
-                    source: { result: '對方說：我也是別人轉的，不知道原文在哪。', scoreDelta: { source: 20, spread: 10 } },
-                    search: { result: '查不到這個研究，只看到一堆一樣的轉貼。', scoreDelta: { source: 10, evidence: 10, spread: 10 } },
-                    hold: { result: '先不轉，繼續查查看。', scoreDelta: { calibration: 10, spread: 10 } }
-                },
-                evidenceCards: [
-                    {
-                        id: 'A', title: '網路養生貼文', sourceType: '社群貼文（模擬）',
-                        content: '「日本研究證實：每天三杯普洱茶，28 天血管年輕十歲！」',
-                        useful: '看得出這個說法在網路上傳得很廣',
-                        limits: '沒附研究，大家只是互相轉貼',
-                        links: [],
-                        result: '很多人講一樣的話，不代表多了一份證據。',
-                        scoreDelta: { evidence: -10 }
-                    },
-                    {
-                        id: 'B', title: '醫師受訪畫面', sourceType: '影片截圖（模擬）',
-                        content: '字幕：「平常多喝茶，對心血管有幫助。」',
-                        useful: '有醫師說喝茶不錯',
-                        limits: '找不到完整影片。沒提普洱茶，也沒提 28 天',
-                        links: [],
-                        result: '只有一句話，看不到前後文，也沒講到 28 天清血管。',
-                        scoreDelta: { evidence: -10 }
-                    },
-                    {
-                        id: 'C', title: '醫學期刊研究', sourceType: '2017 年醫學期刊（真實）',
-                        content: '追蹤很多人好幾年，常喝茶的人，得心臟病的比例稍微低一點。',
-                        useful: '這是真的研究，查得到',
-                        limits: '講的是平常喝茶，不是普洱茶喝 28 天。也沒量血管裡的油脂',
-                        links: ['tea-ihd'],
-                        comparable: true,
-                        result: '這篇研究可靠，但它回答的是另一個問題。',
-                        scoreDelta: { evidence: 10 }
-                    },
-                    {
-                        id: 'D', title: '三份資料對照', sourceType: '本遊戲整理',
-                        content: '我們把 C 這篇研究、食藥署的文章、美國心臟協會的資料放在一起看。沒有一份提到「普洱茶 28 天清血管」。',
-                        useful: '拿訊息的每一句去對，看有沒有資料說過',
-                        limits: '這是我們整理的，不是訊息講的那個研究；也不代表喝茶沒用',
-                        links: ['tea-ihd', 'fda-tea', 'aha-vascular'],
-                        afterCompare: true,
-                        result: '你拿訊息的每一句去對資料，這才是判斷的根據。',
-                        scoreDelta: { evidence: 20 }
-                    }
-                ],
-                verdictOptions: {
-                    credible: { result: '沒有一份資料說過「28 天清血管」。喝茶不錯是真的，但那是另一回事。', scoreDelta: { calibration: -20, spread: -10 } },
-                    insufficient: { result: '找不到出處，不代表一定是假的。查清楚之前，先不轉最保險。', scoreDelta: { calibration: 20, spread: 20 } },
-                    suspicious: { result: '找不到出處，確實要小心。不過找不到，不等於證明是假的。', scoreDelta: { calibration: 10, spread: 15 } }
-                },
-                reflection: {
-                    conclusionLabel: '找不到出處',
-                    conclusion: '現有資料都沒說「28 天清血管、血管年輕十歲」。',
-                    checkPoints: [
-                        '沒有研究名字，查不到',
-                        '醫師的話是聽朋友說的',
-                        '「28 天」沒說幾個人試過、怎麼量',
-                        '「年輕十歲」沒說怎麼量'
-                    ]
-                },
-                learningPoint: '第一招：先問出處',
-                // 回饋取句順序：byAction → byEvidence → byVerdict → fallback；suffixByAction 接在後面
-                feedback: {
-                    source: {
-                        byAction: { source: '你一開始就先問出處，這是最重要的一步。', search: '你一開始就先問出處，這是最重要的一步。' },
-                        fallback: '你後來有找到要查的地方。下次收到訊息，先問：這是哪裡來的？'
-                    },
-                    evidence: {
-                        byEvidence: {
-                            D: '你拿訊息的每一句去對資料，看得很仔細。',
-                            C: '你選的研究很可靠，但它講的是另一件事。',
-                            A: '這份資料跟訊息講的一樣，但證明不了什麼。',
-                            B: '這份資料沒講到 28 天清血管，幫不了判斷。'
-                        }
-                    },
-                    calibration: {
-                        byVerdict: {
-                            insufficient: '證據不夠，就先不下定論，這樣很好。',
-                            suspicious: '保持警覺很好。不過找不到，不等於一定是假的。',
-                            credible: '資料都對不上，這時候先別急著相信。'
-                        },
-                        suffixByAction: { ignore: '不理之前先查一下，會更有把握。' }
-                    },
-                    spread: {
-                        byAction: { forward: '你一開始就轉出去了。下次先停一下，查了再轉。' },
-                        byVerdict: {
-                            insufficient: '你沒有轉，這則訊息就停在你這裡。',
-                            suspicious: '你沒有轉。也可以提醒家人：這則找不到出處。',
-                            credible: '你還沒轉。轉之前，先確認那個研究在哪。'
-                        }
-                    }
-                },
-                references: [
-                    { id: 'tea-ihd', label: '研究原文（英文）', url: 'https://pubmed.ncbi.nlm.nih.gov/28077466/' },
-                    { id: 'fda-tea', label: '食藥署的茶與健康文章（英文）', url: 'https://www.fda.gov.tw/ENG/publishjfdalistContent.aspx?id=2508' },
-                    { id: 'aha-vascular', label: '美國心臟協會：血管健康（英文）', url: 'https://www.heart.org/en/health-topics/vascular-health' }
-                ]
-            }
-        ];
-
-        /* ========== 純狀態邏輯（不碰 DOM） ========== */
-        const STORAGE_KEY = 'tea-investigation:v1';
-        const PHASES = SHARED.phases;
-
-        function freshState(scenarioId) {
-            return {
-                v: 1,
-                scenarioId: scenarioId || SCENARIOS[0].id,
-                phase: 'MESSAGE',
-                reached: 0,
-                initialBelief: null,
-                actionId: null,
-                openedClues: [],
-                readEvidence: [],
-                compared: false,
-                selectedEvidenceId: null,
-                verdictId: null,
-                finalBelief: null
-            };
-        }
-
-        function scenarioOf(state) {
-            return SCENARIOS.find(s => s.id === state.scenarioId);
-        }
-
-        function checkCluesFound(state, sc) {
-            return sc.clues.filter(c => c.kind === 'check' && state.openedClues.includes(c.id)).length;
-        }
-
-        function canPickEvidence(state) {
-            return state.readEvidence.length >= SHARED.minEvidenceRead;
-        }
-
-        function visibleCards(state, sc) {
-            return sc.evidenceCards.filter(c => !c.afterCompare || state.compared);
-        }
-
-        // 每一階段能不能往下走，全部集中在這裡判斷
-        function gate(phase, state, sc) {
-            switch (phase) {
-                case 'INITIAL_BELIEF':
-                    return state.initialBelief === null ? '拉一下滑桿，選你的分數' : '';
-                case 'ACTION':
-                    return state.actionId ? '' : '先選一個';
-                case 'CLUE_HUNT': {
-                    const left = SHARED.clueGoal - checkCluesFound(state, sc);
-                    return left > 0 ? `再找 ${left} 處要查的` : '';
-                }
-                case 'EVIDENCE':
-                    if (!canPickEvidence(state)) return '至少打開兩份資料';
-                    return state.selectedEvidenceId ? '' : '選一份資料';
-                case 'FINAL_VERDICT':
-                    if (!state.verdictId) return '先選一個判斷';
-                    return state.finalBelief === null ? '再拉一下滑桿' : '';
-                default:
-                    return '';
-            }
-        }
-
-        function maxReachableIndex(state, sc) {
-            let i = 0;
-            while (i < state.reached && i < PHASES.length - 1 && !gate(PHASES[i], state, sc)) i++;
-            return i;
-        }
-
-        function computeScores(state, sc) {
-            const total = {};
-            SHARED.scores.forEach(s => { total[s.id] = SHARED.scoreBase; });
-            const add = delta => {
-                if (!delta) return;
-                Object.keys(delta).forEach(k => { total[k] += delta[k]; });
-            };
-            if (state.actionId) add(sc.actions[state.actionId].scoreDelta);
-            sc.clues.forEach(c => { if (state.openedClues.includes(c.id)) add(c.scoreDelta); });
-            const card = sc.evidenceCards.find(c => c.id === state.selectedEvidenceId);
-            if (card) add(card.scoreDelta);
-            if (state.verdictId) add(sc.verdictOptions[state.verdictId].scoreDelta);
-            Object.keys(total).forEach(k => { total[k] = Math.max(0, Math.min(100, total[k])); });
-            return total;
-        }
-
-        function feedbackFor(scoreId, state, sc) {
-            const rule = sc.feedback[scoreId];
-            let text = (rule.byAction && rule.byAction[state.actionId])
-                || (rule.byEvidence && rule.byEvidence[state.selectedEvidenceId])
-                || (rule.byVerdict && rule.byVerdict[state.verdictId])
-                || rule.fallback || '';
-            const suffix = rule.suffixByAction && rule.suffixByAction[state.actionId];
-            return suffix ? `${text}${suffix}` : text;
-        }
-
-        function hasOwn(obj, key) {
-            return Object.prototype.hasOwnProperty.call(obj, key);
-        }
-
-        function isValidState(s) {
-            if (!s || s.v !== 1) return false;
-            const sc = scenarioOf(s);
-            if (!sc || !PHASES.includes(s.phase)) return false;
-            const belief = b => b === null || (Number.isInteger(b) && b >= 0 && b <= 100);
-            const clueIds = sc.clues.map(c => c.id);
-            const cardIds = sc.evidenceCards.map(c => c.id);
-            return belief(s.initialBelief) && belief(s.finalBelief)
-                && Number.isInteger(s.reached) && s.reached >= 0 && s.reached < PHASES.length
-                && (s.actionId === null || hasOwn(sc.actions, s.actionId))
-                && (s.verdictId === null || hasOwn(sc.verdictOptions, s.verdictId))
-                && (s.selectedEvidenceId === null || cardIds.includes(s.selectedEvidenceId))
-                && Array.isArray(s.openedClues) && s.openedClues.every(id => clueIds.includes(id))
-                && Array.isArray(s.readEvidence) && s.readEvidence.every(id => cardIds.includes(id))
-                && new Set(s.openedClues).size === s.openedClues.length
-                && new Set(s.readEvidence).size === s.readEvidence.length
-                && typeof s.compared === 'boolean';
-        }
-
-        /* ========== 保存（同分頁 sessionStorage） ========== */
-        function loadState() {
-            try {
-                const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY));
-                if (isValidState(saved)) return saved;
-            } catch (e) { /* 無痕或封鎖儲存時照樣能玩 */ }
-            return freshState();
-        }
-
-        function saveState() {
-            try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { }
-        }
-
-        /* ========== 畫面工具（一律用文字節點） ========== */
-        function h(tag, attrs, ...children) {
-            const el = document.createElement(tag);
-            if (attrs) {
-                Object.entries(attrs).forEach(([k, v]) => {
-                    if (v === null || v === undefined || v === false) return;
-                    if (k === 'class') el.className = v;
-                    else if (k === 'text') el.textContent = v;
-                    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
-                    else el.setAttribute(k, v === true ? '' : v);
-                });
-            }
-            children.flat().forEach(c => {
-                if (c === null || c === undefined || c === false) return;
-                el.append(c instanceof Node ? c : document.createTextNode(String(c)));
-            });
-            return el;
-        }
-
-        function setChildren(el, ...nodes) {
-            el.textContent = '';
-            el.append(...nodes);
-        }
-
-        function externalLink(ref) {
-            return h('a', { href: ref.url, target: '_blank', rel: 'noopener noreferrer' }, `${ref.label} ↗`);
-        }
-
-        const CLIP_SVG = '<svg viewBox="0 0 22 50" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"><path d="M16 14v24a5 5 0 0 1-10 0V9a8 8 0 0 1 16 0v27"/></svg>';
-
-        /* ========== 各階段畫面 ========== */
-        let state = loadState();
-        let collapsedCards = new Set();
-        let justRevealed = null;
-        let recallOpen = false;
-
-        const screenEl = document.getElementById('screen');
-        const backBtn = document.getElementById('btn-back');
-        const nextBtn = document.getElementById('btn-next');
-        const hintEl = document.getElementById('gate-hint');
-        const liveEl = document.getElementById('live');
-
-        function title(text, big) {
-            return h('h2', { class: big ? 'phase-title big' : 'phase-title', tabindex: '-1', id: 'phase-title' }, text);
-        }
-
-        // mode: plain（純閱讀）／hunt（可點線索）／review（只留標記）
-        function messageCard(sc, mode, withNote) {
-            const clueBySeg = {};
-            sc.clues.forEach(c => { clueBySeg[c.segmentId] = c; });
-            const bubble = h('div', { class: mode === 'hunt' ? 'bubble hunt' : 'bubble' });
-            // 空一行＝分段，換成固定間距，避免大行高下空得太開
-            const appendText = text => text.split('\n\n').forEach((part, i) => {
-                if (i) bubble.append(h('span', { class: 'para-break' }));
-                bubble.append(part);
-            });
-            sc.messageSegments.forEach(seg => {
-                const clue = clueBySeg[seg.id];
-                if (!clue || mode === 'plain') {
-                    appendText(seg.text);
-                    return;
-                }
-                const opened = state.openedClues.includes(clue.id);
-                if (mode === 'review') {
-                    if (!opened) { appendText(seg.text); return; }
-                    bubble.append(
-                        h('span', { class: `seg seg-static ${clue.kind}` }, seg.text),
-                        h('span', { class: `tag ${clue.kind}` }, clue.kind === 'check' ? '要查' : '不用查')
-                    );
-                    return;
-                }
-                const hintId = `hint-${clue.id}`;
-                const short = seg.text.length <= 6 ? ' nowrap' : '';
-                bubble.append(h('span', {
-                    class: (opened ? `seg ${clue.kind}` : 'seg') + short,
-                    role: 'button',
-                    tabindex: '0',
-                    'aria-expanded': opened ? 'true' : 'false',
-                    'aria-controls': opened ? hintId : null,
-                    'data-key': `clue-${clue.id}`,
-                    onclick: () => openClue(clue.id),
-                    onkeydown: e => {
-                        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openClue(clue.id); }
-                    }
-                }, seg.text));
-                if (opened) {
-                    bubble.append(h('span', { class: `hint ${clue.kind}${justRevealed === clue.id ? ' pop' : ''}`, id: hintId },
-                        h('span', { class: `tag ${clue.kind}` }, clue.kind === 'check' ? '要查' : '不用查'),
-                        ' ', clue.hint));
-                }
-            });
-            const card = h('div', { class: 'message' },
-                h('div', { class: 'message-type' }, sc.sourceType),
-                bubble);
-            const clip = h('span', { class: 'clip', 'aria-hidden': 'true' });
-            clip.innerHTML = CLIP_SVG;
-            card.prepend(clip);
-            const wrap = h('div', null, card);
-            if (withNote) {
-                wrap.append(h('p', { class: 'note' }, h('b', null, '案卷註記'), sc.caseNote));
-            }
-            return wrap;
-        }
-
-        function recall(sc) {
-            const afterHunt = PHASES.indexOf(state.phase) > PHASES.indexOf('CLUE_HUNT');
-            return h('details', { class: 'recall', open: recallOpen, ontoggle: e => { recallOpen = e.target.open; } },
-                h('summary', { 'data-key': 'recall' }, '再看一次訊息'), messageCard(sc, 'review', afterHunt));
-        }
-
-        function beliefSlider(field, labelledBy) {
-            const value = state[field];
-            const out = h('div', { class: 'belief-value', 'aria-hidden': 'true' }, value === null ? '還沒選' : `${value} 分`);
-            const box = h('div', { class: value === null ? 'belief untouched' : 'belief' });
-            const input = h('input', {
-                type: 'range', min: '0', max: '100', step: '1',
-                value: String(value === null ? 50 : value),
-                'aria-labelledby': labelledBy,
-                'aria-valuetext': value === null ? '還沒選' : `${value} 分`,
-                'data-key': `slider-${field}`
-            });
-            const set = () => {
-                const v = Number(input.value);
-                state[field] = v;
-                saveState();
-                box.classList.remove('untouched');
-                out.textContent = `${v} 分`;
-                input.setAttribute('aria-valuetext', `${v} 分`);
-                renderActionbar();
-            };
-            input.addEventListener('input', set);
-            input.addEventListener('change', set);
-            input.addEventListener('pointerdown', e => {
-                const r = input.getBoundingClientRect();
-                const thumb = 36;
-                const ratio = (e.clientX - r.left - thumb / 2) / (r.width - thumb);
-                input.value = String(Math.round(Math.max(0, Math.min(1, ratio)) * 100));
-                set();
-            });
-            box.append(out, input, h('div', { class: 'belief-ends', 'aria-hidden': 'true' },
-                h('span', null, SHARED.beliefEnds[0]), h('span', null, SHARED.beliefEnds[1])));
-            return box;
-        }
-
-        function optionList(options, selectedId, onPick, keyPrefix, row) {
-            return h('div', { class: row ? 'options row' : 'options', role: 'group' },
-                options.map(o => h('button', {
-                    type: 'button', class: 'option',
-                    'aria-pressed': o.id === selectedId ? 'true' : 'false',
-                    'data-key': `${keyPrefix}-${o.id}`,
-                    onclick: () => onPick(o.id)
-                }, o.label)));
-        }
-
-        function evidenceCard(card, sc) {
-            const read = state.readEvidence.includes(card.id);
-            const open = read && !collapsedCards.has(card.id);
-            const selected = state.selectedEvidenceId === card.id;
-            const bodyId = `card-${card.id}`;
-            const head = h('button', {
-                type: 'button', class: 'ecard-head',
-                'aria-expanded': open ? 'true' : 'false', 'aria-controls': bodyId,
-                'data-key': `card-${card.id}`,
-                onclick: () => toggleCard(card.id)
-            }, h('span', { class: 'ecard-letter' }, card.id), h('span', null, card.title),
-                h('span', { class: 'chev', 'aria-hidden': 'true' }, open ? '收起 ▴' : '打開 ▾'));
-            const el = h('article', { class: `ecard${selected ? ' selected' : ''}${justRevealed === card.id ? ' pop' : ''}`, id: `ecard-${card.id}` }, head);
-            if (!open) return el;
-
-            const refs = card.links.map(id => sc.references.find(r => r.id === id));
-            const canSelect = canPickEvidence(state);
-            const actions = h('div', { class: 'ecard-actions' });
-            if (card.comparable && !state.compared) {
-                actions.append(h('button', {
-                    type: 'button', class: 'btn', 'data-key': 'compare', onclick: compare
-                }, '跟其他資料對對看'));
-            }
-            actions.append(h('button', {
-                type: 'button', class: 'btn',
-                'aria-pressed': selected ? 'true' : 'false',
-                'aria-disabled': canSelect ? null : 'true',
-                'data-key': `pick-${card.id}`,
-                onclick: () => pickEvidence(card.id)
-            }, selected ? '已選這份' : '選這份'));
-
-            el.append(h('div', { class: 'ecard-body', id: bodyId },
-                h('span', { class: 'label' }, card.sourceType),
-                h('dl', null,
-                    h('dt', null, '內容'), h('dd', null, card.content),
-                    h('dt', null, '可以參考的地方'), h('dd', null, card.useful),
-                    h('dt', null, '不夠的地方'), h('dd', null, card.limits),
-                    h('dt', null, '原始連結'),
-                    refs.length ? refs.map(r => h('dd', null, externalLink(r))) : h('dd', null, '沒有，這是模擬的資料')),
-                actions));
-            return el;
-        }
-
-        const VIEWS = {
-            MESSAGE(sc) {
-                return [title(sc.caseLabel, true), messageCard(sc, 'plain')];
-            },
-            INITIAL_BELIEF(sc) {
-                return [title(SHARED.prompts.INITIAL_BELIEF), messageCard(sc, 'plain'),
-                h('div', { class: 'block' }, beliefSlider('initialBelief', 'phase-title'))];
-            },
-            ACTION(sc) {
-                const chosen = state.actionId && sc.actions[state.actionId];
-                return [title(SHARED.prompts.ACTION), recall(sc),
-                optionList(SHARED.actions, state.actionId, pickAction, 'action'),
-                chosen ? h('p', { class: 'result' }, chosen.result) : null];
-            },
-            CLUE_HUNT(sc) {
-                return [title(SHARED.prompts.CLUE_HUNT),
-                messageCard(sc, 'hunt', true)];
-            },
-            EVIDENCE(sc) {
-                return [title(SHARED.prompts.EVIDENCE), recall(sc),
-                h('div', { class: 'cards' }, visibleCards(state, sc).map(c => evidenceCard(c, sc)))];
-            },
-            FINAL_VERDICT(sc) {
-                return [title(SHARED.prompts.FINAL_VERDICT), recall(sc),
-                optionList(SHARED.verdicts, state.verdictId, pickVerdict, 'verdict', true),
-                h('div', { class: 'block' },
-                    h('h3', { class: 'phase-title', id: 'final-belief-label' }, SHARED.prompts.finalBelief),
-                    beliefSlider('finalBelief', 'final-belief-label'))];
-            },
-            REFLECTION(sc) {
-                const card = sc.evidenceCards.find(c => c.id === state.selectedEvidenceId);
-                const verdict = SHARED.verdicts.find(v => v.id === state.verdictId);
-                return [title(SHARED.prompts.REFLECTION),
-                h('div', { class: 'shift' },
-                    h('div', null, h('small', null, '查之前'), h('strong', null, state.initialBelief), h('small', null, '分')),
-                    h('div', { class: 'arrow', 'aria-hidden': 'true' }, '→'),
-                    h('div', null, h('small', null, '查之後'), h('strong', null, state.finalBelief), h('small', null, '分'))),
-                h('div', { class: 'facts' },
-                    h('section', null, h('span', { class: 'label' }, '你選的資料'),
-                        h('p', { class: 'fact' }, `${card.id}　${card.title}`), h('p', { class: 'result' }, card.result)),
-                    h('section', null, h('span', { class: 'label' }, '你的判斷'),
-                        h('p', { class: 'fact' }, verdict.label), h('p', { class: 'result' }, sc.verdictOptions[state.verdictId].result))),
-                h('div', { class: 'block verdict-box' },
-                    h('span', { class: 'label' }, '案件結論'), h('br'),
-                    h('span', { class: 'stamp' }, sc.reflection.conclusionLabel),
-                    h('p', { style: 'margin:0' }, sc.reflection.conclusion)),
-                h('p', { class: 'block move' }, sc.learningPoint),
-                h('div', { class: 'block' },
-                    h('span', { class: 'label' }, `${sc.reflection.checkPoints.length} 個要查的地方`),
-                    h('ol', { class: 'checklist' }, sc.reflection.checkPoints.map(t => h('li', null, t))))];
-            },
-            RESULT(sc) {
-                const scores = computeScores(state, sc);
-                return [title(SHARED.prompts.RESULT),
-                h('div', { class: 'scores' }, SHARED.scores.map(s => h('section', { class: 'score' },
-                    h('div', { class: 'score-head' }, h('h3', { style: 'margin:0;font-size:inherit' }, s.label), h('span', null, scores[s.id])),
-                    h('div', { class: 'meter', role: 'img', 'aria-label': `${s.label} ${scores[s.id]} 分，滿分 100` },
-                        h('i', { style: `width:${scores[s.id]}%` })),
-                    h('p', null, feedbackFor(s.id, state, sc)))))];
-            }
-        };
-
-        /* ========== 繪製 ========== */
-        function render(phaseChanged) {
-            const sc = scenarioOf(state);
-            const focusKey = !phaseChanged && document.activeElement && document.activeElement.dataset
-                ? document.activeElement.dataset.key : null;
-            const y = window.scrollY;
-
-            if (phaseChanged) recallOpen = false;
-            const content = h('div', { class: phaseChanged ? 'enter' : null }, VIEWS[state.phase](sc));
-            setChildren(screenEl, content);
-            renderChrome(sc);
-            renderActionbar();
-            justRevealed = null;
-
-            if (phaseChanged) {
-                window.scrollTo(0, 0);
-                document.getElementById('phase-title').focus({ preventScroll: true });
-            } else {
-                window.scrollTo(0, y);
-                const again = focusKey && screenEl.querySelector(`[data-key="${focusKey}"]`);
-                if (again) again.focus({ preventScroll: true });
-            }
-        }
-
-        function renderChrome(sc) {
-            const idx = PHASES.indexOf(state.phase);
-            const steps = PHASES.length - 1;
-            const progress = document.getElementById('progress');
-            progress.hidden = idx === 0;
-            document.getElementById('progress-text').textContent = `${sc.caseLabel}　${idx}／${steps}`;
-            setChildren(document.getElementById('progress-bar'),
-                ...Array.from({ length: steps }, (_, i) => h('span', { class: i < idx ? 'on' : null })));
-            document.getElementById('credit').hidden = state.phase !== 'RESULT';
-        }
-
-        function renderActionbar() {
-            const sc = scenarioOf(state);
-            const blocked = gate(state.phase, state, sc);
-            backBtn.classList.toggle('gone', state.phase === 'MESSAGE');
-            nextBtn.textContent = SHARED.nextLabels[state.phase];
-            if (blocked) nextBtn.setAttribute('aria-disabled', 'true');
-            else nextBtn.removeAttribute('aria-disabled');
-            hintEl.textContent = blocked;
-        }
-
-        let nudgeTimer = 0;
-
-        function nudge() {
-            hintEl.classList.remove('nudge');
-            void hintEl.offsetWidth;
-            hintEl.classList.add('nudge');
-            clearTimeout(nudgeTimer);
-            nudgeTimer = setTimeout(() => hintEl.classList.remove('nudge'), 1200);
-            announce(hintEl.textContent);
-        }
-
-        /* ========== 操作 ========== */
-        function update(mutator) {
-            mutator(state);
-            saveState();
-            render(false);
-        }
-
-        function openClue(id) {
-            if (state.openedClues.includes(id)) return;
-            justRevealed = id;
-            update(s => { s.openedClues = [...s.openedClues, id]; });
-        }
-
-        function announce(text) {
-            liveEl.textContent = '';
-            setTimeout(() => { liveEl.textContent = text; }, 50);
-        }
-
-        function pickAction(id) {
-            update(s => { s.actionId = id; });
-            announce(scenarioOf(state).actions[id].result);
-        }
-
-        function pickVerdict(id) { update(s => { s.verdictId = id; }); }
-
-        const cardOpenedAt = {};
-
-        function toggleCard(id) {
-            if (!state.readEvidence.includes(id)) {
-                collapsedCards.delete(id);
-                cardOpenedAt[id] = performance.now();
-                update(s => { s.readEvidence = [...s.readEvidence, id]; });
-                return;
-            }
-            if (performance.now() - (cardOpenedAt[id] || 0) < NAV_LOCK_MS) return;
-            if (collapsedCards.has(id)) collapsedCards.delete(id); else collapsedCards.add(id);
-            render(false);
-        }
-
-        function compare() {
-            const sc = scenarioOf(state);
-            const revealed = sc.evidenceCards.filter(c => c.afterCompare).map(c => c.id);
-            justRevealed = revealed[0];
-            update(s => {
-                s.compared = true;
-                s.readEvidence = [...new Set([...s.readEvidence, ...revealed])];
-            });
-            const el = document.getElementById(`ecard-${revealed[0]}`);
-            if (el) {
-                const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-                el.querySelector('.ecard-head').focus({ preventScroll: true });
-            }
-        }
-
-        function pickEvidence(id) {
-            if (!canPickEvidence(state)) { nudge(); return; }
-            update(s => { s.selectedEvidenceId = id; });
-        }
-
-        /* ========== 前進、返回、重玩（遊戲內返回＝瀏覽器返回） ==========
-           不變式：本分頁歷史紀錄第 i 筆就是第 i 階段，返回一律走瀏覽器歷史。 */
-        const NAV_LOCK_MS = 700;
-        let navLockUntil = 0;
-
-        function navLocked() {
-            return performance.now() < navLockUntil;
-        }
-
-        function lockNav() {
-            navLockUntil = performance.now() + NAV_LOCK_MS;
-        }
-
-        function entry(idx) {
-            return { tea: 1, phase: PHASES[idx] };
-        }
-
-        function historyIndex() {
-            return history.state && history.state.tea ? PHASES.indexOf(history.state.phase) : -1;
-        }
-
-        function show(idx) {
-            state.phase = PHASES[idx];
-            state.reached = Math.max(state.reached, idx);
-            saveState();
-            lockNav();
-            render(true);
-        }
-
-        function next() {
-            if (navLocked()) return;
-            const sc = scenarioOf(state);
-            if (state.phase === 'RESULT') { restart(); return; }
-            if (gate(state.phase, state, sc)) { nudge(); return; }
-            const idx = PHASES.indexOf(state.phase) + 1;
-            history.pushState(entry(idx), '');
-            show(idx);
-        }
-
-        function back() {
-            if (navLocked() || state.phase === 'MESSAGE') return;
-            lockNav();
-            history.back();
-        }
-
-        function restart() {
-            const idx = historyIndex();
-            state = freshState(state.scenarioId);
-            collapsedCards = new Set();
-            show(0);
-            if (idx > 0) history.go(-idx);
-            else history.replaceState(entry(0), '');
-        }
-
-        window.addEventListener('popstate', e => {
-            if (!e.state || !e.state.tea) return;
-            const wanted = PHASES.indexOf(e.state.phase);
-            const allowed = maxReachableIndex(state, scenarioOf(state));
-            // 資料不足以停在這一步（重玩後按前進、存檔遺失）就退回能到的那一筆
-            if (wanted > allowed) { history.go(allowed - wanted); return; }
-            show(Math.max(wanted, 0));
-        });
-
-        backBtn.addEventListener('click', back);
-        nextBtn.addEventListener('click', next);
-
-        /* ========== 啟動：刷新時接回本分頁進度 ========== */
-        (function init() {
-            if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-            const sc = scenarioOf(state);
-            const allowed = maxReachableIndex(state, sc);
-            const fromHistory = historyIndex();
-            if (fromHistory < 0) {
-                // 沒有本遊戲的歷史紀錄（新開或同分頁重開網址）：補齊前面各階段，返回才有路
-                const target = Math.min(PHASES.indexOf(state.phase), allowed);
-                history.replaceState(entry(0), '');
-                for (let i = 1; i <= target; i++) history.pushState(entry(i), '');
-                state.phase = PHASES[target];
-            } else if (fromHistory > allowed) {
-                state.phase = PHASES[allowed];
-                history.go(allowed - fromHistory);
-            } else {
-                state.phase = PHASES[fromHistory];
-            }
-            saveState();
-            try {
-                render(false);
-            } catch (err) {
-                // 存檔內容畫不出來就重開一局，避免整頁空白
-                state = freshState();
-                saveState();
-                history.replaceState(entry(0), '');
-                render(false);
-            }
-        })();
-    </script>
+<div class="shell">
+<header class="masthead"><span class="brand">茶訊調查局<span aria-hidden="true"> 🍵</span></span></header>
+<p id="storage-notice" class="notice" role="status" hidden>這個瀏覽器沒辦法保存進度，關掉或重新整理後會從頭開始。</p>
+<main id="screen"></main>
+<div id="actions"></div>
+<footer class="footer"><details><summary>關於茶訊調查局</summary><p>透過喝茶的健康消息，練習留意出處、證據和條件。案件情境為遊戲編寫，查證資料附原始來源。</p><p>由 <a href="https://www.facebook.com/SummitTeaTW" target="_blank" rel="noopener noreferrer">山茗主義 Summit Tea ↗</a> 製作。</p></details></footer>
+</div>
+<p id="live" class="sr-only" aria-live="polite"></p>
+<noscript><p class="shell">請開啟 JavaScript，才能點開案件與提示。</p></noscript>
+<script>
+'use strict';
+// 訊息裡只要有一部分是真的，調查局的看法就是半真半假。
+const VERDICTS=['假的','半真半假','真的'];
+const text=value=>({text:value});
+const clue=(id,value,hint,basis,ref=null)=>({id,text:value,hint,basis,ref});
+// 訊息為遊戲編寫；訊息附的資料與另外查證分開，不能把新增知識當成玩家原有資訊。
+// answer 是調查局的看法（VERDICTS 的索引）；feedback 依玩家選項排列，先肯定再補充；問題細節只寫在線索裡。
+const SCENARIOS=[{
+  id:'puer-28-days',title:'阿姨傳來的普洱茶秘方',context:'家庭群組 · 阿姨的轉傳',angle:'找出處',answer:0,
+  segments:[text('「這篇值得存！'),clue('study','日本有醫學研究發現','訊息沒有寫研究名稱、作者或連結，沒辦法查它說的是哪一篇。','message'),text('，每天三杯普洱茶，連續喝 '),clue('days','28 天就能清掉血管裡的油脂','天數和杯數寫得很具體，卻沒有說是怎麼量出來的。數字寫得再具體，也不等於證據。','message'),text('，讓血管年輕十歲。我朋友照著喝，'),clue('friend','說最近精神好多了','朋友覺得精神好，和血管有沒有變化是兩件事，訊息把它們接在一起了。','message'),text('。不用買昂貴補品，每天飯後一杯就好，家裡有長輩的可以看看。」')],
+  attachment:null,references:[],finding:'說有研究，卻找不到出處，先當假的看。',
+  feedback:[
+    '你沒有被具體的天數和杯數帶著走，這份警覺很好。',
+    '你留了一半的空間，沒有照單全收，這是好習慣。',
+    '你把阿姨的好意放在心上，這很自然；喜歡普洱茶可以照常喝，只是訊息說的功效還查不到出處。'
+  ],
+  todo:'喜歡普洱茶可以照常喝，但別把它當成清血管的療法；用藥和回診照醫師的安排。'
+},{
+  id:'tea-and-iron',title:'午餐後的那杯茶',context:'朋友分享 · 飲茶時間提醒',angle:'看分寸',answer:2,
+  segments:[text('「我午餐常配茶，最近看到一篇 2017 年的人體研究。它比較餐點配水、配茶和飯後一小時喝茶，發現茶配著餐點喝，會讓'),clue('iron','餐點中部分鐵的吸收減少','研究量的是餐點裡的「非血基質鐵」，主要是蔬菜、穀類這類食物裡的鐵。訊息只說「部分鐵」，沒有誇大成所有營養都吸收不了。','attachment','iron'),text('；'),clue('hour','隔一小時再喝，影響較小','研究確實比較了「配餐喝」和「一小時後喝」，訊息說的和研究量的是同一件事。','attachment','iron'),text('。所以想留意鐵吸收，可以考慮喝茶的時間。不過，'),clue('anemia','這不表示喝茶就一定會貧血','訊息自己畫了界線：一餐的吸收有差別，不等於每個人長期喝茶都會貧血。','message'),text('。原文和摘要附在下面。」')],
+  attachment:{ref:'iron',label:'2017 年人體研究 · 中文摘要',lines:['12 名沒有貧血、鐵質充足的女性，吃同樣的粥，分別配水、配茶，或一小時後才喝茶。','研究量的是餐點中「非血基質鐵」的吸收量；一小時後才喝茶，吸收量比配餐喝茶來得高。']},
+  references:[{id:'iron',label:'研究原文摘要（英文）',url:'https://pubmed.ncbi.nlm.nih.gov/29046302/'}],finding:'有研究依據，話也沒有說過頭。',
+  feedback:[
+    '看到健康提醒先打個問號，是好習慣。這一則比較特別：它附了研究，說的也沒有超出研究。',
+    '你保留一點空間很合理：這是只有 12 個人的小型試驗，確實不能代表所有人。',
+    '你看出這則訊息有憑有據，而且話沒有說過頭，判斷很準。'
+  ],
+  todo:'如果醫師提醒過你要留意鐵質，可以和醫師聊聊喝茶的時間，例如改到飯後一小時；沒有這個顧慮，照平常的習慣就好。'
+},{
+  id:'overnight-tea',title:'早上看到的隔夜茶警告',context:'生活群組 · 轉傳提醒',angle:'分風險',answer:1,
+  segments:[text('「昨晚泡的茶，今天千萬別喝！有人整理說'),clue('smell','茶放久會變味，是因為有害物質增加','食藥署的說法是：茶在常溫放久了容易孳生細菌，所以會酸敗變味。變味是變質的訊號，不等於產生了致癌物。','check','fda'),text('，'),clue('cancer','放一晚就會累積到致癌的程度','訊息沒有提供任何測量數字或研究。我們查了食藥署的說明：目前沒有研究證實隔夜茶和致癌有關。','check','fda'),text('，'),clue('all','就算蓋好、放冰箱，只要隔夜都一樣','這句話把保存方式全部忽略了。食藥署提醒的是保存環境和變質，不是「有沒有過夜」。','check','fda'),text('。我婆婆以前喝了隔夜茶拉肚子，'),clue('stomach','就是這個原因','食藥署提到，放久的茶可能讓胃不舒服或拉肚子。那是變質造成的腸胃問題，不能拿來證明會致癌。','check','fda'),text('。寧可倒掉，也不要拿健康冒險，提醒身邊的人！」')],attachment:null,
+  references:[{id:'fda',label:'食藥署：隔夜茶喝了會致癌，是真的嗎？',url:'https://www.fda.gov.tw/tc/newsContent.aspx?cid=5049&id=13916'}],finding:'茶放久會變質是真的，會致癌沒有依據。',
+  feedback:[
+    '你沒有被「致癌」兩個字嚇到，判斷很穩。補充一點：茶放久會變質、可能鬧肚子，這部分倒是真的。',
+    '你分得很清楚：茶放久確實可能變質，但那和致癌是兩回事。',
+    '寧可小心一點，這個出發點沒有錯；茶放太久，確實可能喝了不舒服。只是「致癌」這個說法，目前沒有依據。'
+  ],
+  todo:'泡好的茶盡快喝完，留意保存的環境；已經變味的就不要喝。'
+},{
+  id:'coffee-green-tea',title:'朋友分享的新配方',context:'朋友私訊 · 附上一份研究摘要',angle:'對原文',answer:1,
+  segments:[text('「最近找到一個省錢配方：'),clue('recipe','咖啡加綠茶，一比一','研究用的是成分固定的特製飲品，沒有測過「家裡的咖啡和綠茶各倒一半」。','attachment','blend'),text('，'),clue('fat','不用節食就能甩油','研究量的是血糖這類指標，不是減脂。研究量的是一件事，不能拿來說另一件事有效。','attachment','blend'),text('！這篇 2022 年的研究有實驗，摘要也寫效果有改善，所以不只是網路偏方。我把'),clue('study','研究摘要附在下面','研究對象是 11 名健康男性、為期三週。就算指標有改善，也不能保證每個人照這個配方喝都有效。','attachment','blend'),text('，明天準備自己調一杯，想瘦的可以一起試試。」')],
+  attachment:{ref:'blend',label:'2022 年營養學期刊研究 · 中文摘要',lines:['11 名健康男性，連續三週飲用特製飲品，裡面有固定份量的茶成分（兒茶素）和咖啡成分（綠原酸、咖啡因）。','和拿來比較的飲料相比，量的是餐後血糖、胰島素等指標；部分指標有改善。']},
+  references:[{id:'blend',label:'研究原文摘要（英文）',url:'https://pubmed.ncbi.nlm.nih.gov/36501092/'}],finding:'研究是真的，結論卻多說了一截。',
+  feedback:[
+    '你看出這個配方的承諾撐不起來，很敏銳。補充一點：那篇研究本身是真的，只是被拿去說了別的事。',
+    '你分得很清楚：研究是真的，朋友的結論卻多說了一截。',
+    '你注意到它有附研究，這比沒有出處的訊息好得多。再往下對一對，會發現研究和配方說的不是同一件事。'
+  ],
+  todo:'想喝咖啡加綠茶當然可以，把它當成一杯飲料就好；想減重，還是回到飲食和運動。'
+},{
+  id:'very-hot-tea',title:'茶友群裡的一則提醒',context:'茶友群組 · 附機構說明',angle:'抓條件',answer:2,
+  segments:[text('「剛泡好的茶，我以前都趁熱喝。看到國際癌症研究機構的說明後，才知道要留意的是'),clue('temperature','飲用時超過 65°C 的高溫','訊息寫的溫度和機構說明的定義一樣，這是有具體來源的條件。','attachment','iarc'),text('：經常喝這類很燙的飲料，'),clue('risk','可能增加食道癌風險','訊息用的是「可能增加風險」，沒有說喝一次就會得病，話留了分寸。','attachment','iarc'),text('。'),clue('drinks','不只茶，其他很燙的飲料也要留意','機構評估的是「喝的溫度」，不是茶本身。訊息沒有把它說成喝茶會致癌。','attachment','iarc'),text('。我現在會先放一下，附上說明給大家參考。」')],
+  attachment:{ref:'iarc',label:'國際癌症研究機構（世界衛生組織轄下），2016 · 中文摘要',lines:['「非常熱」指飲用時超過 65°C；喝這類很燙的飲料，被評為很可能導致人類食道癌。','依據的研究來自習慣喝很燙的茶或瑪黛茶的地區，例如中國、伊朗、土耳其和南美洲。']},
+  references:[{id:'iarc',label:'機構說明原文（英文 PDF）',url:'https://www.iarc.who.int/wp-content/uploads/2018/07/pr244_E.pdf'}],finding:'有來源，條件也講得清楚。',
+  feedback:[
+    '看到「致癌」先打個問號，是好習慣。這一則不同的地方是：它有機構說明，條件也講得很清楚。',
+    '你保留一點空間也有道理：這份說明談的是整體風險，沒辦法預測每個人會不會生病。',
+    '你看出這則提醒有來源、有條件，判斷很準。'
+  ],
+  todo:'剛泡好的茶先放涼一下，不燙口再喝。'
+},{
+  id:'tea-and-alcohol',title:'聚餐後的一杯濃茶',context:'朋友群組 · 聚餐後的心得',angle:'辨感覺',answer:1,
+  segments:[text('「昨晚聚餐喝了酒，回家前喝一大杯濃茶，過一會兒'),clue('alert','眼睛沒那麼沉，講話也比較有精神','這個感受是真的。但我們查了咖啡因的資料：覺得有精神，不代表酒精的影響已經消失。','check','cdc'),text('。茶有咖啡因，能提神，可見濃茶可以解酒，'),clue('sober','酒精已經退得差不多了','訊息沒有酒測值或任何客觀數字。美國疾病管制與預防中心（CDC）說明：咖啡因不會減少酒精對身體的影響。','check','cdc'),text('。朋友也說我看起來很正常。以後聚餐喝了酒，'),clue('drive','先喝杯濃茶，就可以自己開車回家','自己覺得清醒、朋友說看起來正常，都不能當成可以開車的依據。','message'),text('，分享給大家。」')],attachment:null,
+  references:[{id:'cdc',label:'美國疾病管制與預防中心：酒精與咖啡因（英文）',url:'https://www.cdc.gov/alcohol/about-alcohol-use/alcohol-caffeine.html'}],finding:'濃茶能提神是真的，能解酒是假的。',
+  feedback:[
+    '你沒有把「感覺清醒」當成「酒退了」，這個判斷很重要。補充一點：濃茶能提神，這部分是真的。',
+    '你分得很清楚：濃茶能提神是真的，但提神不等於解酒。',
+    '喝了濃茶人比較有精神，這個感受是真的。只是精神好不好，和酒精退了沒有，是兩回事。'
+  ],
+  todo:'喝了酒就不開車：叫代駕、搭計程車，或請家人來接。濃茶只能提神，不能解酒。'
+}];
+const FINISH_LINES=['研究是真的，轉傳可能加戲。','茶可以慢慢喝，消息不用急著吞。','杯子有底，消息也要有根據。'];
+const STORAGE_KEY='tea-investigation:v4';
+const emptyCase=()=>({selected:null,submitted:null,active:null,seen:[]});
+const validChoice=x=>Number.isInteger(x)&&x>=0&&x<VERDICTS.length;
+function freshState(){return {v:4,cases:Object.fromEntries(SCENARIOS.map(c=>[c.id,emptyCase()])),finishLine:null};}
+function loadState(){
+  const result=freshState();
+  try{
+    const old=JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(old?.v!==4||!old.cases)return result;
+    let gap=false;
+    for(const c of SCENARIOS){
+      const saved=old.cases[c.id],p=result.cases[c.id];
+      if(gap||!saved||typeof saved!=='object'){gap=true;continue;}
+      p.selected=validChoice(saved.selected)?saved.selected:null;
+      p.submitted=validChoice(saved.submitted)?saved.submitted:null;
+      if(p.submitted===null){gap=true;continue;}
+      p.selected=p.submitted;
+      p.active=c.segments.some(s=>s.id===saved.active)?saved.active:null;
+      p.seen=c.segments.filter(s=>s.id&&((Array.isArray(saved.seen)&&saved.seen.includes(s.id))||s.id===p.active)).map(s=>s.id);
+    }
+    if(Object.values(result.cases).every(p=>p.submitted!==null)&&Number.isInteger(old.finishLine)&&old.finishLine>=0&&old.finishLine<FINISH_LINES.length)result.finishLine=old.finishLine;
+  }catch(e){/* 損壞或不可讀的存檔不阻擋遊玩。 */}
+  return result;
+}
+let state=loadState();
+let storageAvailable=true;
+const screen=document.getElementById('screen'),actions=document.getElementById('actions');
+const getCase=id=>SCENARIOS.find(c=>c.id===id);
+const firstPending=()=>SCENARIOS.find(c=>state.cases[c.id].submitted===null);
+const resumeHash=()=>firstPending()?`#case/${firstPending().id}`:'#finish';
+function save(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){storageAvailable=false;}
+  document.getElementById('storage-notice').hidden=storageAvailable;
+}
+function h(tag,attrs,...children){
+  const el=document.createElement(tag);
+  for(const[k,v]of Object.entries(attrs||{})){
+    if(v===null||v===undefined||v===false)continue;
+    if(k.startsWith('on'))el.addEventListener(k.slice(2),v);
+    else el.setAttribute(k,v===true?'':String(v));
+  }
+  for(const c of children.flat())if(c!==null&&c!==undefined)el.append(c instanceof Node?c:document.createTextNode(String(c)));
+  return el;
+}
+const link=(label,hash,cls='btn')=>h('a',{href:hash,class:cls},label);
+const external=ref=>h('a',{href:ref.url,target:'_blank',rel:'noopener noreferrer'},`${ref.label} ↗`);
+const heading=(label,cls='case-title')=>h('h1',{class:cls,id:'page-title',tabindex:'-1'},label);
+const announce=value=>{document.getElementById('live').textContent=value;};
+function parseRoute(hash=location.hash){
+  const match=hash.match(/^#(case|review)\/([a-z0-9-]+)$/);
+  if(match&&getCase(match[2]))return {view:match[1],id:match[2]};
+  return {view:hash==='#finish'?'finish':'home'};
+}
+function normalizeRoute(r){
+  const pending=firstPending(),pendingIndex=pending?SCENARIOS.indexOf(pending):SCENARIOS.length;
+  if(r.view==='finish'&&pending)return {view:'case',id:pending.id};
+  if(r.id){
+    if(SCENARIOS.findIndex(c=>c.id===r.id)>pendingIndex)return {view:'case',id:pending.id};
+    if(r.view==='review'&&state.cases[r.id].submitted===null)return {view:'case',id:r.id};
+  }
+  return r;
+}
+const routeHash=r=>r.id?`#${r.view}/${r.id}`:`#${r.view}`;
+let route=normalizeRoute(parseRoute());
+const scrollPositions=new Map();
+const routeKey=r=>`${r.view}/${r.id||''}`;
+function go(hash){if(location.hash===hash)render();else location.hash=hash;}
+function action(label,hash,primary=true){
+  const a=link(label,hash,primary?'btn primary':'btn');a.id='next-action';
+  actions.append(h('nav',{class:'actionbar','aria-label':'繼續遊戲'},h('div',{},a)));
+}
+const cluesOf=c=>c.segments.filter(s=>s.id);
+const scoreOf=c=>{const p=state.cases[c.id];return [50,30,10][Math.abs(p.submitted-c.answer)]+Math.round(p.seen.length/cluesOf(c).length*50);};
+const totalScore=()=>SCENARIOS.reduce((sum,c)=>sum+scoreOf(c),0);
+const bestAngle=()=>SCENARIOS.reduce((best,c)=>scoreOf(c)>scoreOf(best)?c:best).angle;
+function home(){
+  const begun=SCENARIOS.some(c=>state.cases[c.id].selected!==null),done=!firstPending();
+  const teasers=[['姨','每天三杯普洱，28 天清血管！'],['友','隔夜茶千萬別喝，會致癌！'],['群','喝完酒來杯濃茶，就能開車了。']];
+  return h('section',{class:'hero'},h('p',{class:'eyebrow'},'六則訊息 · 約 8 分鐘'),heading('群組又傳來喝茶消息，\n是真的嗎？','hero-title'),
+    h('div',{class:'chat',role:'img','aria-label':'群組訊息範例：'+teasers.map(t=>t[1]).join('')},teasers.map(([who,line])=>h('div',{class:'bubble'},h('span',{class:'avatar'},who),h('p',{},line))),h('div',{class:'bubble typing'},h('span',{class:'avatar'},'你'),h('p',{},h('i'),h('i'),h('i')))),
+    link(done?'看通關卡':begun?`繼續第 ${SCENARIOS.indexOf(firstPending())+1} 案`:'開始調查',resumeHash(),'btn primary'));
+}
+function caseHeader(c,revealed=false){
+  const index=SCENARIOS.indexOf(c);
+  return h('div',{class:'case-heading'},h('p',{class:'eyebrow'},`第 ${index+1} 案 / ${SCENARIOS.length}${revealed?' · 解析':''}`),h('div',{class:'case-dots','aria-hidden':'true'},SCENARIOS.map((_,i)=>h('span',{class:i<=index?'filled':''}))));
+}
+function attachment(c){
+  if(!c.attachment)return null;
+  const ref=c.references.find(r=>r.id===c.attachment.ref);
+  return h('aside',{class:'attachment','aria-label':'訊息附的資料'},h('p',{class:'attachment-label'},`訊息附的資料｜${c.attachment.label}`),c.attachment.lines.map(line=>h('p',{},line)),external(ref));
+}
+function toggleClue(c,id){
+  const p=state.cases[c.id];
+  if(p.submitted===null)return;
+  p.active=p.active===id?null:id;
+  if(p.active&&!p.seen.includes(id))p.seen.push(id);
+  save();updateProgress(c);
+  for(const s of c.segments.filter(s=>s.id)){
+    document.getElementById(`clue-${s.id}`).setAttribute('aria-expanded',String(p.active===s.id));
+    document.getElementById(`clue-${s.id}`).classList.toggle('seen',p.seen.includes(s.id));
+    document.getElementById(`hint-${s.id}`).hidden=p.active!==s.id;
+  }
+  const button=document.getElementById(`clue-${id}`),note=document.getElementById(`hint-${id}`);
+  if(p.active){
+    // 使用即時捲動，背景分頁也能運作；讓觸發句與提示同時留在可視區。
+    const limit=document.querySelector('.actionbar')?.getBoundingClientRect().top||innerHeight;
+    const br=button.getBoundingClientRect(),nr=note.getBoundingClientRect();
+    if(nr.bottom>limit)window.scrollBy(0,Math.min(nr.bottom-limit+12,br.top-12));
+    if(button.getBoundingClientRect().top<12)button.scrollIntoView({block:'start',behavior:'instant'});
+  }
+  announce(p.active?`${c.segments.find(s=>s.id===id).hint}（線索已看 ${p.seen.length}／${cluesOf(c).length}）`:'提示已收起');
+}
+function updateProgress(c){
+  const seen=state.cases[c.id].seen.length,total=cluesOf(c).length,done=seen===total;
+  document.getElementById('clue-count').replaceChildren(...(done?[`${total} 條線索都看完了 ✓`]:['點',h('span',{class:'swatch'},'黃色的句子'),`，看調查局查到什麼（${seen}／${total}）`]));
+  document.getElementById('next-action').classList.toggle('primary',done);
+}
+function message(c,revealed=false){
+  const p=state.cases[c.id],paragraph=h('p',{class:'message-text'});
+  for(const s of c.segments){
+    if(!s.id||!revealed){paragraph.append(s.text);continue;}
+    const ref=c.references.find(r=>r.id===s.ref);
+    paragraph.append(h('span',{role:'button',tabindex:'0',class:p.seen.includes(s.id)?'clue seen':'clue',id:`clue-${s.id}`,'aria-expanded':String(p.active===s.id),'aria-controls':`hint-${s.id}`,onclick:()=>toggleClue(c,s.id),onkeydown:e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleClue(c,s.id);}}},s.text),h('span',{class:'clue-note',id:`hint-${s.id}`,hidden:p.active!==s.id},s.hint,ref?h('span',{class:'hint-source'},external(ref)):null));
+  }
+  return h('section',{class:'message','aria-label':'本案訊息'},h('p',{class:'label'},c.context),paragraph,attachment(c));
+}
+function casePage(c){
+  const p=state.cases[c.id],submitted=p.submitted!==null;
+  const article=h('article',{class:'case-page'},caseHeader(c),heading(c.title),message(c));
+  if(submitted){
+    article.append(h('p',{class:'saved-choice'},`當時的看法：${VERDICTS[p.submitted]}`));
+    action('回到解析',`#review/${c.id}`);
+    return article;
+  }
+  const field=h('fieldset',{class:'verdict',id:'verdict'},h('legend',{},'這則訊息是真的嗎？'),h('div',{class:'choices'},VERDICTS.map((label,i)=>h('label',{class:p.selected===i?'choice checked':'choice'},h('input',{type:'radio',id:`verdict-${i}`,name:'verdict',value:i,checked:p.selected===i,onchange:()=>{p.selected=i;save();field.querySelectorAll('.choice').forEach((el,n)=>el.classList.toggle('checked',n===i));document.getElementById('form-error').hidden=true;document.getElementById('submit-case').textContent='送出判斷';} }),label))));
+  article.append(h('form',{id:'case-form',onsubmit:e=>{
+    e.preventDefault();
+    if(p.submitted!==null)return;
+    if(p.selected===null){
+      document.getElementById('form-error').hidden=false;
+      field.scrollIntoView({block:'center',behavior:'instant'});
+      field.querySelector('input').focus({preventScroll:true});
+      announce('先選一個看法，再送出。');return;
+    }
+    p.submitted=p.selected;save();go(`#review/${c.id}`);
+  }},field,h('p',{id:'form-error',class:'form-error',role:'alert',hidden:true},'先選一個看法，再送出。')));
+  actions.append(h('div',{class:'actionbar'},h('div',{},h('button',{class:'btn primary',type:'submit',form:'case-form',id:'submit-case'},p.selected===null?'你怎麼看？':'送出判斷'))));
+  return article;
+}
+function review(c){
+  const p=state.cases[c.id],next=SCENARIOS[SCENARIOS.indexOf(c)+1],finished=!firstPending();
+  action(finished?(next?'回通關卡 →':'領取通關卡 →'):'下一案 →',finished?'#finish':`#case/${next.id}`,p.seen.length===cluesOf(c).length);
+  const page=h('article',{class:'case-page'},caseHeader(c,true),heading(c.title),
+    h('section',{class:'feedback','aria-label':'你和調查局的看法'},h('h2',{},c.finding),h('p',{},h('span',{id:'verdict-compare'},p.submitted===c.answer?`你和調查局都選「${VERDICTS[c.answer]}」。`:`你選「${VERDICTS[p.submitted]}」，調查局選「${VERDICTS[c.answer]}」。`),h('span',{id:'choice-feedback'},c.feedback[p.submitted]))),
+    h('div',{class:'reveal-heading'},h('p',{id:'clue-count'})),message(c,true),
+    h('section',{class:'feedback plain','aria-label':'所以可以這樣做'},h('p',{class:'todo'},h('strong',{},'所以可以這樣做'),c.todo)));
+  queueMicrotask(()=>updateProgress(c));
+  return page;
+}
+let shareFile=null;
+function publicGameUrl(){
+  // 本機試玩不分享不可存取的 loopback 網址；公開頁則使用自己的遊戲入口。
+  if(['127.0.0.1','localhost','[::1]'].includes(location.hostname)||location.protocol==='file:')return null;
+  return new URL(location.pathname,location.origin).href;
+}
+function shareText(){
+  return `🍵 六杯茶喝完，消息沒全吞。\n我在茶訊調查局拿到「茶訊拆招員」，判斷力 ${totalScore()}／600，最拿手的是「${bestAngle()}」。\n${FINISH_LINES[state.finishLine]}${publicGameUrl()?`\n你也來試試：${publicGameUrl()}`:''}`;
+}
+const radarPoint=(i,r,cx,cy)=>{const a=-Math.PI/2+i*Math.PI/3;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];};
+function svg(tag,attrs,...children){
+  const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(const[k,v]of Object.entries(attrs))el.setAttribute(k,String(v));
+  el.append(...children);return el;
+}
+function radar(){
+  const cx=170,cy=150,R=80;
+  const points=r=>SCENARIOS.map((c,i)=>radarPoint(i,typeof r==='function'?r(c):r,cx,cy).map(n=>n.toFixed(1)).join(',')).join(' ');
+  const el=svg('svg',{viewBox:'0 0 340 300',class:'radar',role:'img','aria-label':'六種判斷力：'+SCENARIOS.map(c=>`${c.angle} ${scoreOf(c)} 分`).join('、')});
+  for(const f of [.25,.5,.75,1])el.append(svg('polygon',{points:points(R*f),class:'radar-ring'}));
+  SCENARIOS.forEach((c,i)=>{const [x,y]=radarPoint(i,R,cx,cy);el.append(svg('line',{x1:cx,y1:cy,x2:x.toFixed(1),y2:y.toFixed(1),class:'radar-axis'}));});
+  el.append(svg('polygon',{points:points(c=>R*scoreOf(c)/100),class:'radar-area'}));
+  SCENARIOS.forEach((c,i)=>{
+    const [x,y]=radarPoint(i,R+12,cx,cy),side=Math.round(x-cx),top=i===0?y-24:i===3?y+18:y-2;
+    const anchor=side>0?'start':side<0?'end':'middle';
+    el.append(svg('text',{x:x.toFixed(1),y:top.toFixed(1),'text-anchor':anchor},c.angle),svg('text',{x:x.toFixed(1),y:(top+21).toFixed(1),'text-anchor':anchor,class:'num'},String(scoreOf(c))));
+  });
+  return el;
+}
+function cardCanvas(){
+  const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1350;
+  const ctx=canvas.getContext('2d');if(!ctx)return null;
+  ctx.fillStyle='#f4f0ec';ctx.fillRect(0,0,1080,1350);
+  ctx.strokeStyle='#252820';ctx.lineWidth=3;ctx.strokeRect(54,54,972,1242);
+  ctx.textAlign='left';ctx.fillStyle='#252820';ctx.font='bold 36px serif';ctx.fillText('茶訊調查局 / 六案完成',110,150);
+  ctx.font='bold 64px serif';ctx.fillText('六杯茶喝完，',110,265);ctx.fillText('消息沒全吞。',110,350);
+  const cx=540,cy=700,R=205,pt=(i,r)=>radarPoint(i,r,cx,cy);
+  const path=r=>{ctx.beginPath();SCENARIOS.forEach((c,i)=>{const [x,y]=pt(i,typeof r==='function'?r(c):r);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();};
+  ctx.strokeStyle='#c8c9bb';ctx.lineWidth=2;for(const f of [.25,.5,.75,1]){path(R*f);ctx.stroke();}
+  SCENARIOS.forEach((c,i)=>{ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(...pt(i,R));ctx.stroke();});
+  path(c=>R*scoreOf(c)/100);ctx.fillStyle='#315b4540';ctx.fill();ctx.strokeStyle='#315b45';ctx.lineWidth=5;ctx.stroke();
+  ctx.font='bold 34px serif';
+  SCENARIOS.forEach((c,i)=>{const [x,y]=pt(i,R+30),side=Math.round(x-cx);ctx.textAlign=side>0?'left':side<0?'right':'center';const top=i===0?y-44:i===3?y+30:y-8;ctx.fillStyle='#252820';ctx.fillText(c.angle,x,top);ctx.fillStyle='#315b45';ctx.fillText(String(scoreOf(c)),x,top+42);});
+  ctx.textAlign='center';ctx.fillStyle='#252820';ctx.font='bold 46px serif';ctx.fillText('通關稱號｜茶訊拆招員',540,1085);
+  ctx.fillStyle='#252820';ctx.font='32px serif';ctx.fillText(`判斷力 ${totalScore()}／600 · 最拿手「${bestAngle()}」`,540,1140);
+  ctx.font='34px serif';ctx.fillText(FINISH_LINES[state.finishLine],540,1200);
+  ctx.font='24px serif';ctx.fillStyle='#626459';ctx.fillText('茶訊調查局',540,1250);
+  const url=publicGameUrl();if(url){ctx.font='20px sans-serif';ctx.fillText(url,540,1282,850);}
+  return canvas;
+}
+function prepareCard(){
+  shareFile=null;
+  try{
+    const canvas=cardCanvas();if(!canvas)return;
+    // 在分享按鈕出現前建好檔案，保留系統分享需要的即時使用者操作。
+    const binary=atob(canvas.toDataURL('image/png').split(',')[1]);
+    const bytes=Uint8Array.from(binary,char=>char.charCodeAt(0));
+    shareFile=new File([bytes],'茶訊拆招員.png',{type:'image/png'});
+  }catch(e){/* 圖片不可用時仍可分享文字。 */}
+}
+async function shareCard(){
+  const text=shareText();
+  if(navigator.share){
+    try{
+      const data={title:'茶訊調查局｜我的通關卡',text};
+      if(shareFile&&navigator.canShare?.({files:[shareFile]}))data.files=[shareFile];
+      await navigator.share(data);announce('分享完成。');return;
+    }catch(e){if(e.name==='AbortError'){announce('已取消分享。');return;}}
+  }
+  try{
+    if(!navigator.clipboard?.writeText)throw new Error('clipboard unavailable');
+    await navigator.clipboard.writeText(text);
+    document.getElementById('share-status').textContent='分享文字已複製。';
+  }catch(e){
+    const fallback=document.getElementById('share-fallback');fallback.hidden=false;
+    const field=document.getElementById('share-copy');field.value=text;field.focus();field.select();
+    document.getElementById('share-status').textContent='可以直接選取並複製下方文字。';
+  }
+}
+async function downloadCard(){
+  const blob=shareFile||await new Promise(resolve=>{const canvas=cardCanvas();if(canvas)canvas.toBlob(resolve,'image/png');else resolve(null);});
+  if(!blob){document.getElementById('share-status').textContent='目前無法產生圖片，可以分享文字。';return;}
+  const url=URL.createObjectURL(blob),a=h('a',{href:url,download:'茶訊拆招員.png'});
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+  document.getElementById('share-status').textContent='通關卡已產生。';
+}
+function restart(){
+  state=freshState();save();shareFile=null;scrollPositions.clear();
+  history.replaceState(null,'','#home');route=parseRoute();render();
+}
+function finish(){
+  if(state.finishLine===null){state.finishLine=Math.floor(Math.random()*FINISH_LINES.length);save();}
+  prepareCard();
+  return h('section',{class:'finish-page'},h('div',{class:'finish-card',id:'finish-card'},h('p',{class:'eyebrow'},`${SCENARIOS.length} 案完成 · 通關紀念`),heading('六杯茶喝完，\n消息沒全吞。','finish-title'),radar(),h('p',{class:'finish-rank'},'通關稱號｜茶訊拆招員'),h('p',{class:'finish-best'},`判斷力 ${totalScore()}／600 · 最拿手「${bestAngle()}」`),h('p',{class:'finish-quote'},FINISH_LINES[state.finishLine]),h('p',{class:'finish-signature'},'茶訊調查局')),h('div',{class:'finish-actions'},h('button',{class:'btn primary',id:'share-card',type:'button',onclick:shareCard},'分享通關卡'),h('button',{class:'btn',id:'save-card',type:'button',onclick:downloadCard},'存成圖片')),h('p',{id:'share-status',class:'share-status',role:'status'},''),h('div',{id:'share-fallback',hidden:true},h('label',{for:'share-copy'},'分享文字'),h('textarea',{id:'share-copy',readonly:true,rows:5})),h('button',{class:'text-button',type:'button',id:'restart-game',onclick:restart},'回首頁，再玩一次'));
+}
+function render(restore=false){
+  route=normalizeRoute(route);
+  if(location.hash!==routeHash(route))history.replaceState(null,'',routeHash(route));
+  actions.replaceChildren();
+  screen.replaceChildren(route.view==='home'?home():route.view==='finish'?finish():route.view==='case'?casePage(getCase(route.id)):review(getCase(route.id)));
+  document.body.dataset.view=route.view;
+  document.title=route.id?`${getCase(route.id).title}｜茶訊調查局`:route.view==='finish'?'茶訊拆招員｜茶訊調查局':'茶訊調查局｜喝茶的健康消息';
+  document.getElementById('storage-notice').hidden=storageAvailable;
+  const y=restore?scrollPositions.get(routeKey(route)):undefined;
+  window.scrollTo(0,y??0);
+  document.getElementById('page-title')?.focus({preventScroll:true});
+}
+window.addEventListener('hashchange',()=>{scrollPositions.set(routeKey(route),window.scrollY);announce('');route=parseRoute();render(true);});
+window.addEventListener('scroll',()=>scrollPositions.set(routeKey(route),window.scrollY),{passive:true});
+// 另一個分頁改了進度時跟著更新，避免舊畫面把新進度蓋掉。
+window.addEventListener('storage',e=>{if(e.key===STORAGE_KEY){state=loadState();route=parseRoute();render();}});
+if('scrollRestoration'in history)history.scrollRestoration='manual';
+render();
+</script>
 </body>
-
 </html>

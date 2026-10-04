@@ -1,0 +1,75 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+assert.ok(script);new vm.Script(script);
+const prefix=script.slice(0,script.indexOf('let state=loadState();'));
+assert.ok(prefix.includes('function loadState()'));
+const routing=script.slice(script.indexOf('const getCase='),script.indexOf('function save()'))+script.slice(script.indexOf('function parseRoute('),script.indexOf('const routeHash='));
+function context(saved=null,blocked=false){
+  const sandbox={localStorage:{getItem:()=>{if(blocked)throw new Error('blocked');return saved;}}};
+  vm.createContext(sandbox);vm.runInContext(prefix+'\nlet state=loadState();\n'+routing,sandbox);return sandbox;
+}
+const evaluate=(expression,ctx=context())=>JSON.parse(vm.runInContext(`JSON.stringify(${expression})`,ctx));
+const cases=evaluate('SCENARIOS'),verdicts=evaluate('VERDICTS');
+function validate(list){
+  assert.equal(list.length,6,'六案不可缺少');
+  assert.equal(new Set(list.map(c=>c.id)).size,6,'案件 id 重複');
+  for(const c of list){
+    for(const key of ['title','context','finding','angle','todo'])assert.ok(c[key]?.trim(),`${c.id} 缺 ${key}`);
+    assert.ok(Number.isInteger(c.answer)&&c.answer>=0&&c.answer<verdicts.length,`${c.id} 缺調查局看法`);
+    const clues=c.segments.filter(s=>s.id);
+    assert.ok(clues.length>=2&&clues.length<=4,'每案維持短流程');
+    assert.equal(new Set(clues.map(s=>s.id)).size,clues.length);
+    assert.equal(c.feedback.length,verdicts.length,`${c.id} 缺對應回饋`);
+    assert.equal(new Set(c.feedback).size,verdicts.length,`${c.id} 不可只換選項標籤`);
+    for(const f of c.feedback)assert.ok(f.trim().length>15);
+    for(const s of c.segments){
+      assert.ok(s.text?.trim());if(!s.id)continue;
+      assert.ok(s.hint?.trim(),`${c.id} 缺提示`);
+      assert.ok(['message','attachment','check'].includes(s.basis),'提示必須說明依據');
+      if(s.basis!=='message')assert.ok(c.references.some(r=>r.id===s.ref),'查證或附文必須指到來源');
+      if(s.basis==='attachment')assert.equal(c.attachment?.ref,s.ref,'附文提示不可使用判斷前沒有的來源');
+    }
+    for(const r of c.references){assert.ok(r.label?.trim());assert.equal(new URL(r.url).protocol,'https:');}
+    if(c.attachment){assert.ok(c.references.some(r=>r.id===c.attachment.ref));assert.ok(c.attachment.lines.length>0);}
+  }
+}
+validate(cases);
+assert.equal(new Set(cases.map(c=>c.angle)).size,6,'六個判斷角度不可重複');
+assert.equal(new Set(cases.map(c=>c.answer)).size,verdicts.length,'三種看法都要有案件，不能全是假消息');
+const noAnswer=structuredClone(cases);delete noAnswer[2].answer;
+assert.throws(()=>validate(noAnswer),/缺調查局看法/);
+const faulty=structuredClone(cases);faulty[3].attachment=null;
+assert.throws(()=>validate(faulty),/附文提示/,'必須抓到第四案依賴隱藏研究');
+const noFeedback=structuredClone(cases);noFeedback[0].feedback.fill('同一段不回應原選擇的泛用文案');
+assert.throws(()=>validate(noFeedback),/不可只換/);
+const noHint=structuredClone(cases);noHint[0].segments.find(s=>s.id).hint='';
+assert.throws(()=>validate(noHint),/缺提示/);
+assert.deepEqual(verdicts,['假的','半真半假','真的']);
+const initial=evaluate('state');
+for(const saved of ['{bad',JSON.stringify({v:3,cases:{}})])assert.deepEqual(evaluate('state',context(saved)),initial);
+assert.deepEqual(evaluate('state',context(null,true)),initial,'儲存不可用仍可玩');
+const id=cases[0].id,second=cases[1].id;
+const firstClue=cases[0].segments.find(s=>s.id).id;
+const saved={v:4,cases:{[id]:{selected:2,submitted:0,active:firstClue,seen:[firstClue,'bogus']},[second]:{selected:2,submitted:null,active:'invalid',seen:['hour']},[cases[2].id]:{submitted:1}},finishLine:99};
+const ctx=context(JSON.stringify(saved)),restored=evaluate('state',ctx);
+assert.equal(restored.cases[id].selected,0,'原選擇不能被草稿覆蓋');assert.equal(restored.cases[id].submitted,0);
+assert.deepEqual(restored.cases[id].seen,[firstClue],'只恢復存在的線索');assert.deepEqual(restored.cases[second].seen,[],'未提交的案件不能有已看線索');
+assert.equal(restored.cases[second].selected,2);assert.equal(restored.cases[second].active,null);
+assert.equal(restored.cases[cases[2].id].submitted,null,'存檔不得跳過未完成案');assert.equal(restored.finishLine,null);
+function route(hash,ctx=context()){ctx.hash=hash;return evaluate('normalizeRoute(parseRoute(hash))',ctx);}
+assert.deepEqual(route(`#case/${cases[5].id}`),{view:'case',id});
+assert.deepEqual(route(`#review/${id}`),{view:'case',id});
+assert.deepEqual(route('#finish'),{view:'case',id});
+assert.deepEqual(route(`#case/${cases[5].id}`,ctx),{view:'case',id:second});
+assert.deepEqual(route(`#review/${id}`,ctx),{view:'review',id});
+const all=structuredClone(initial);for(const p of Object.values(all.cases)){p.submitted=2;p.selected=2;}
+all.finishLine=1;assert.deepEqual(route('#finish',context(JSON.stringify(all))),{view:'finish'});
+assert.equal(evaluate('state.finishLine',context(JSON.stringify(all))),1,'通關短句刷新不變');
+// 線索是行內文字，不能撐高行距；觸控高度靠不上色的上下內距補足。
+function checkTarget(source){const rule=source.match(/\.clue\s*\{([^}]*)\}/)?.[1]||'';for(const part of ['padding:10px 0','background-clip:content-box'])assert.ok(rule.includes(part),`點擊區缺 ${part}`);assert.ok(!rule.includes('inline-block'),'點擊區不可撐高行距');}
+checkTarget(html);assert.throws(()=>checkTarget(html.replace('padding:10px 0','padding:0')),/點擊區/);
+for(const forbidden of ['#cases','#compare','選擇案件','先跳過','重新調查','看本案重點','scoreDelta','type: \'range\'','sessionStorage','還無法判斷','收起提示','靠不住','靠得住'])assert.ok(!script.includes(forbidden),`殘留舊流程 ${forbidden}`);
+console.log('PASS：六案來源分流、18 組回饋與調查局看法、順序入口、原答案不可覆蓋、存檔恢復／損壞／不可用；已知錯誤對照會失敗。');
