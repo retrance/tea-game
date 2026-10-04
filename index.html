@@ -347,7 +347,7 @@ function cardCanvas(){
   const ctx=canvas.getContext('2d');if(!ctx)return null;
   const [title,line]=persona(),cream='#f6f0e2',amber='#f6b93b',font=(weight,size)=>`${weight} ${size}px "Noto Serif TC",serif`;
   const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#1b5a41');bg.addColorStop(.65,'#0c2a20');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-  const cx=540,cy=725,R=190,pt=(i,r)=>radarPoint(i,r,cx,cy);
+  const cx=540,cy=705,R=180,pt=(i,r)=>radarPoint(i,r,cx,cy);
   const glow=ctx.createRadialGradient(cx,cy,30,cx,cy,480);glow.addColorStop(0,'#06c75550');glow.addColorStop(1,'#06c75500');ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
   ctx.strokeStyle='#f6f0e240';ctx.lineWidth=3;ctx.strokeRect(36,36,W-72,H-72);
   ctx.textAlign='left';ctx.fillStyle=cream;ctx.font=font(700,34);ctx.fillText('茶訊調查局',90,128);
@@ -360,7 +360,7 @@ function cardCanvas(){
   path(c=>R*scoreOf(c)/100);ctx.fillStyle='#06c75573';ctx.fill();ctx.strokeStyle='#8de055';ctx.lineWidth=6;ctx.stroke();
   ctx.font=font(700,36);
   SCENARIOS.forEach((c,i)=>{const [x,y]=pt(i,R+30),side=Math.round(x-cx);ctx.textAlign=side>0?'left':side<0?'right':'center';const top=i===0?y-46:i===3?y+34:y-8;ctx.fillStyle=cream;ctx.fillText(c.angle,x,top);ctx.fillStyle=amber;ctx.fillText(String(scoreOf(c)),x,top+44);});
-  ctx.textAlign='center';ctx.fillStyle=cream;ctx.font=font(700,46);ctx.fillText(`「${line}」`,540,1068,900);
+  ctx.textAlign='center';ctx.fillStyle=cream;ctx.font=font(700,46);ctx.fillText(`「${line}」`,540,1064,900);
   ctx.textAlign='left';ctx.font=font(700,32);ctx.fillText('判斷力',90,1250);
   ctx.fillStyle=amber;ctx.font=font(900,110);const total=String(totalScore());ctx.fillText(total,90,1370);
   const after=90+ctx.measureText(total).width+10;ctx.fillStyle=cream;ctx.font=font(700,40);ctx.fillText('／600',after,1370);
