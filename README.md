@@ -31,7 +31,7 @@ python3 -m http.server 8765 --bind 127.0.0.1
 
 ## 案件資料
 
-`SCENARIOS` 包含 `id`、`title`、`context`、`from`（聊天室裡的傳訊人）、`time`（泡泡旁的時間）、`angle`（判斷角度）、`answer`（調查局的看法）、`segments`、`attachment`、`references`、`finding`、`feedback`、`todo`。共用判斷詞由 `VERDICTS` 定義，`answer` 是它的索引，`feedback` 與它的順序相同。計分規則只在 `scoreOf`。`PERSONAS` 以 `angle` 為鍵，值是通關卡上的稱號和一句話；六軸全滿用 `TOP_PERSONA`。
+`SCENARIOS` 包含 `id`、`title`、`context`（標題列的聊天室名稱：群組寫「名稱 (人數)」，私訊與 `from` 相同）、`from`（聊天室裡的傳訊人，要是人名；頭像取 `AVATARS` 的同名內嵌圖，每個傳訊人都要有）、`time`（泡泡旁的時間）、`angle`（判斷角度）、`answer`（調查局的看法）、`segments`、`attachment`、`references`、`finding`、`feedback`、`todo`。共用判斷詞由 `VERDICTS` 定義，`answer` 是它的索引，`feedback` 與它的順序相同。計分規則只在 `scoreOf`。`PERSONAS` 以 `angle` 為鍵，值是通關卡上的稱號和一句話；六軸全滿用 `TOP_PERSONA`。
 
 片段由一般文字 `{ text }` 或線索 `{ id, text, hint, basis, ref }` 組成。`basis` 為 `message`（訊息本身）、`attachment`（訊息附的資料）或 `check`（解析另外查證）。`ref` 指向同案來源的 `id`；附件也以 `ref` 指向來源。判斷前只生成文字與中性附件，解析才生成線索元件。所有文字透過 DOM 文字節點輸出。通關卡由 `cardCanvas` 畫成一張圖，QR 由內建的 `qrMatrix` 產生，不依賴外部套件。
 

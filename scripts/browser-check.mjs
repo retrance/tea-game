@@ -61,16 +61,21 @@ try{
     await hashIs(page,`#case/${c.id}`);await original(page,c);
     if(i===3){assert.ok((await page.locator('.attachment').innerText()).includes('11 名健康男性'));await page.screenshot({path:`${artifactDir}/fourth-original-mobile.png`,fullPage:true});}
     const choice=i%3;
-    assert.equal(await page.locator('#submit-case').innerText(),'你怎麼看？');
+    // 選之前：回覆框是提示語、送出不是綠色；選了之後：回覆框寫好要送的話、送出才變綠，選中的選項不是綠底。
+    assert.equal(await page.locator('#reply-draft').innerText(),'先選上面一個看法');
+    assert.ok(!(await page.locator('#submit-case').getAttribute('class')).includes('primary'),'未選看法，送出不可是主要按鈕');
     await page.locator(`#verdict-${choice}`).check();
     if(i===0){await page.reload();await page.locator(`#verdict-${choice}`).waitFor();assert.ok(await page.locator(`#verdict-${choice}`).isChecked());}
-    assert.equal(await page.locator('#submit-case').innerText(),'送出判斷');
+    assert.equal(await page.locator('#reply-draft').innerText(),`我覺得是「${verdicts[choice]}」`);
+    assert.ok((await page.locator('#submit-case').getAttribute('class')).includes('primary'),'選了看法，送出要變主要按鈕');
+    const fills=await page.evaluate(()=>[getComputedStyle(document.querySelector('.choice.checked')).backgroundImage,getComputedStyle(document.getElementById('submit-case')).backgroundImage]);assert.notEqual(fills[0],fills[1],'選中的選項和送出不可同一個顏色');
     const choices=await page.locator('.choices').boundingBox();assert.ok(choices.height<=70,`選項應只佔一列 ${choices.height}`);
     await page.locator('#submit-case').click();await hashIs(page,`#review/${c.id}`);
     assert.equal(await page.locator('#choice-feedback').innerText(),c.feedback[choice]);
     const stamp=await page.locator('#verdict-compare').innerText();assert.ok(stamp.includes(verdicts[c.answer])&&stamp.includes(choice===c.answer?'調查局也覺得':'調查局覺得'),`印章要對照玩家與調查局 ${stamp}`);
     assert.ok((await page.locator('.row.me .saved-choice').innerText()).includes(verdicts[choice]),'解析開頭是玩家自己的回覆');
     assert.equal(await page.locator('.feedback').count(),2,'解析只有看法和做法兩個區塊');
+    assert.equal(await page.locator('.attachment').count(),0,'解析不重貼訊息附的資料');
     assert.deepEqual(await page.evaluate(()=>[...document.querySelector('.feedback').children].map(e=>e.tagName+(e.id?'#'+e.id:''))),['DIV#verdict-compare','H2','P#choice-feedback'],'第一塊只有印章、結論、回饋');
     if(i===0){const first=page.locator(`#clue-${c.segments.find(s=>s.id).id}`);const line=await page.evaluate(()=>{const t=document.querySelector('.message-text');return {h:t.offsetHeight,lh:parseFloat(getComputedStyle(t).lineHeight)};});assert.ok(Math.abs(line.h/line.lh-Math.round(line.h/line.lh))<.05,`線索不可撐高行距 ${JSON.stringify(line)}`);await first.focus();await page.keyboard.press('Enter');assert.equal(await first.getAttribute('aria-expanded'),'true');await page.keyboard.press('Space');assert.equal(await first.getAttribute('aria-expanded'),'false');assert.equal(await page.locator('.clue.seen').count(),1);await page.evaluate(id=>{state.cases[id].seen=[];save();},c.id);await page.reload();await hashIs(page,`#review/${c.id}`);}
     assert.equal(await page.locator('.clue.seen').count(),0,'線索一開始都是未看');

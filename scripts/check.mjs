@@ -12,12 +12,15 @@ function context(saved=null,blocked=false){
   vm.createContext(sandbox);vm.runInContext(prefix+'\nlet state=loadState();\n'+routing,sandbox);return sandbox;
 }
 const evaluate=(expression,ctx=context())=>JSON.parse(vm.runInContext(`JSON.stringify(${expression})`,ctx));
-const cases=evaluate('SCENARIOS'),verdicts=evaluate('VERDICTS');
+const cases=evaluate('SCENARIOS'),verdicts=evaluate('VERDICTS'),avatars=Object.keys(JSON.parse(script.match(/const AVATARS=(\{.*?\});/)[1]));
 function validate(list){
   assert.equal(list.length,6,'六案不可缺少');
   assert.equal(new Set(list.map(c=>c.id)).size,6,'案件 id 重複');
   for(const c of list){
     for(const key of ['title','context','from','time','finding','angle','todo'])assert.ok(c[key]?.trim(),`${c.id} 缺 ${key}`);
+    assert.ok(/^\S+群組 \(\d+\)$/.test(c.context)||c.context===c.from,`${c.id} 的 context 是群組名加人數，私訊寫對方名字`);
+    assert.match(c.time,/^([01]\d|2[0-3]):[0-5]\d$/,`${c.id} 的時間要是 HH:MM`);
+    assert.ok(avatars.includes(c.from),`${c.id} 的傳訊人要有名字和頭像`);
     assert.ok(Number.isInteger(c.answer)&&c.answer>=0&&c.answer<verdicts.length,`${c.id} 缺調查局看法`);
     const clues=c.segments.filter(s=>s.id);
     assert.ok(clues.length>=2&&clues.length<=4,'每案維持短流程');
@@ -33,7 +36,7 @@ function validate(list){
       if(s.basis==='attachment')assert.equal(c.attachment?.ref,s.ref,'附文提示不可使用判斷前沒有的來源');
     }
     for(const r of c.references){assert.ok(r.label?.trim());assert.equal(new URL(r.url).protocol,'https:');}
-    if(c.attachment){assert.ok(c.references.some(r=>r.id===c.attachment.ref));assert.ok(c.attachment.lines.length>0);}
+    if(c.attachment){assert.ok(c.references.some(r=>r.id===c.attachment.ref));assert.ok(c.attachment.lines.length>0);assert.ok(clues.some(s=>s.ref===c.attachment.ref),`${c.id} 解析不重貼附件，附件來源要掛在線索上`);}
   }
 }
 validate(cases);
