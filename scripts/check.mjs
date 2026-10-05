@@ -95,4 +95,21 @@ assert.throws(()=>checkMusic(html.replace('preload="none"','preload="auto"')),/�
 assert.throws(()=>checkMusic(html.replace('<audio id="bgm"','<audio src="assets/audio/happy-adventure.mp3" id="bgm"')),/不可預先下載/);
 const musicBytes=readFileSync(new URL('../assets/audio/happy-adventure.mp3',import.meta.url));
 assert.ok(musicBytes.length>0&&musicBytes.length<1_000_000,'背景音樂檔案須存在且小於 1 MB');
-console.log('PASS：六案來源分流、18 組回饋與調查局看法、六個通關稱號、QR 入口、順序入口、原答案不可覆蓋、存檔恢復／損壞／不可用；音樂預設關閉、延遲載入與檔案大小；已知錯誤對照會失敗。');
+function checkSeal(source){
+  assert.ok(source.includes("src:'assets/images/tea-bureau-seal.webp'"),'通關章必須使用指定徽章圖');
+  assert.ok(source.includes('if(seal)drawSeal(ctx)'),'通關章必須畫進分享與下載的 PNG');
+}
+function checkIdentity(source){
+  assert.ok(source.includes("class:'brand-seal',src:'assets/images/tea-bureau-avatar.webp'"),'首頁須有簡化盾牌');
+  assert.ok(source.includes("src:'assets/images/tea-bureau-avatar.webp'"),'調查局须用中央盾牌頭像');
+  assert.ok(!source.includes("'調查局覺得'")&&!source.includes("'調查局也覺得'"),'判斷結果不可加不確定前綴');
+}
+checkIdentity(html);
+assert.throws(()=>checkIdentity(html.replace("class:'brand-seal'","class:'missing'")),/首頁須/);
+assert.throws(()=>checkIdentity(html+"'調查局覺得'"),/不確定前綴/);
+const avatarBytes=readFileSync(new URL('../assets/images/tea-bureau-avatar.webp',import.meta.url));
+assert.ok(avatarBytes.length>0&&avatarBytes.length<20_000,'簡化頭像須小於 20 KB');
+checkSeal(html);assert.throws(()=>checkSeal(html.replace('if(seal)drawSeal(ctx)','')),/畫進/,'拿掉蓋章繪製必須被抓到');
+const sealBytes=readFileSync(new URL('../assets/images/tea-bureau-seal.webp',import.meta.url));
+assert.ok(sealBytes.length>0&&sealBytes.length<100_000,'通關章須存在且小於 100 KB');
+console.log('PASS：六案來源分流、18 組回饋與調查局看法、六個通關稱號、QR 入口、順序入口、原答案不可覆蓋、存檔恢復／損壞／不可用；音樂預設關閉、延遲載入與檔案大小；通關章資源與 PNG 繪製；已知錯誤對照會失敗。');

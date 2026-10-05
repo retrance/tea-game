@@ -141,6 +141,7 @@ try{
   const start=await page.getByRole('link',{name:'開始調查',exact:true}).boundingBox();assert.ok(start.y+start.height<812,'首頁開始不在首屏');
   assert.equal(await page.locator('.notif').count(),3);await page.waitForFunction(()=>[...document.querySelectorAll('.notif')].every(b=>getComputedStyle(b).opacity==='1'),null,{timeout:5000});await noOverflow(page);
   for(const width of [320,375]){await page.setViewportSize({width,height:812});const t=await page.evaluate(()=>{const e=document.querySelector('.hero-title');return e.getBoundingClientRect().height/parseFloat(getComputedStyle(e).lineHeight);});assert.ok(Math.round(t)===2,`首頁標題應為兩行 ${width}: ${t}`);}
+  assert.ok(await page.locator('.brand-seal').evaluate(img=>img.complete&&img.naturalWidth>0),'首頁徽章須成功載入');
   await page.screenshot({path:`${artifactDir}/home-mobile.png`});
   // Known bad DOM: verify the same original-screen inspection actually turns red.
   await page.goto(base+`/#case/${cases[0].id}`);await hashIs(page,`#case/${cases[0].id}`);
@@ -169,7 +170,9 @@ try{
     const choices=await page.locator('.choices').boundingBox();assert.ok(choices.height<=70,`選項應只佔一列 ${choices.height}`);
     await page.locator('#submit-case').click();await hashIs(page,`#review/${c.id}`);
     assert.equal(await page.locator('#choice-feedback').innerText(),c.feedback[choice]);
-    const stamp=await page.locator('#verdict-compare').innerText();assert.ok(stamp.includes(verdicts[c.answer])&&stamp.includes(choice===c.answer?'調查局也覺得':'調查局覺得'),`印章要對照玩家與調查局 ${stamp}`);
+    assert.equal(await page.locator('#verdict-compare').innerText(),verdicts[c.answer],'印章直接顯示判斷結果');
+    assert.ok(await page.locator('.avatar.bureau img').evaluate(img=>img.complete&&img.naturalWidth>0&&img.getAttribute('src')==='assets/images/tea-bureau-avatar.webp'),'調查局頭像須載入中央盾牌');
+    if(i===0){await page.waitForFunction(()=>[...document.querySelectorAll('.chat,.row.me,.review .stack>*,.stamp')].every(e=>getComputedStyle(e).opacity==='1'));await page.screenshot({path:`${artifactDir}/bureau-review-mobile.png`});}
     assert.ok((await page.locator('.row.me .saved-choice').innerText()).includes(verdicts[choice]),'解析開頭是玩家自己的回覆');
     assert.equal(await page.locator('.feedback').count(),2,'解析只有看法和做法兩個區塊');
     assert.equal(await page.locator('.attachment').count(),0,'解析不重貼訊息附的資料');
@@ -227,9 +230,23 @@ try{
   assert.equal(personaTitle,await expectedPersona());
   await page.evaluate(()=>{window.keep=JSON.stringify(state);for(const c of SCENARIOS){state.cases[c.id].submitted=c.answer;state.cases[c.id].seen=c.segments.filter(s=>s.id).map(s=>s.id);}});assert.equal(await page.evaluate(()=>persona()[0]),await page.evaluate(()=>TOP_PERSONA[0]),'六軸全滿是局長');await page.evaluate(()=>{state=JSON.parse(window.keep);});
   assert.equal((await page.locator('#share-status').innerText()).trim(),'','沒操作前通關頁沒有多餘的說明文字');assert.equal(await page.locator('.footer:visible').count(),1);
-  await page.waitForFunction(()=>{const img=document.getElementById('finish-card');return img.complete&&img.naturalWidth>0;});
+  await page.waitForFunction(()=>{const img=document.getElementById('finish-card');return img.complete&&img.naturalWidth>0&&!document.querySelector('.finish-seal')&&img.src===cardData&&SEAL.complete&&SEAL.naturalWidth>0;});
   const poster=await page.evaluate(()=>{const img=document.getElementById('finish-card');const r=img.getBoundingClientRect(),b=document.getElementById('share-card').getBoundingClientRect();return {w:img.naturalWidth,h:img.naturalHeight,same:img.src===cardData,buttonBottom:b.bottom,width:r.width};});
   assert.deepEqual([poster.w,poster.h,poster.same],[1080,1640,true],'畫面上是不帶 QR 的通關卡');assert.ok(poster.buttonBottom<812,'分享按鈕要在第一屏');
+  const seal=await page.evaluate(async()=>{
+    const pixels=source=>{const c=document.createElement('canvas');c.width=250;c.height=260;const ctx=c.getContext('2d');ctx.drawImage(source,760,1380,250,260,0,0,250,260);return ctx.getImageData(0,0,250,260).data;};
+    const countBlue=bytes=>{let count=0;for(let i=0;i<bytes.length;i+=4)if(bytes[i+2]>bytes[i]*1.4+10&&bytes[i+2]>bytes[i+1]+8)count++;return count;};
+    const shown=pixels(document.getElementById('finish-card')),shared=pixels(await createImageBitmap(shareFile)),plain=pixels(cardCanvas(false,false));
+    const ink=(x,y,w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.drawImage(document.getElementById('finish-card'),x,y,w,h,0,0,w,h);const bytes=ctx.getImageData(0,0,w,h).data;let count=0;for(let i=0;i<bytes.length;i+=4)if(Math.max(bytes[i],bytes[i+1],bytes[i+2])<180)count++;return count;};
+    const {x,y,size,angle}=SEAL_LAYOUT,extent=size/2*(Math.abs(Math.cos(angle*Math.PI/180))+Math.abs(Math.sin(angle*Math.PI/180)));
+    return {shown:countBlue(shown),shared:countBlue(shared),plain:countBlue(plain),title:ink(96,350,888,165),score:ink(96,1400,640,180),same:shown.every((v,i)=>v===shared[i]),bounds:[x+size/2-extent,y+size/2-extent,x+size/2+extent,y+size/2+extent]};
+  });
+  const hasSeal=count=>assert.ok(count>2000,'實際 PNG 必須含金藍徽章');
+  hasSeal(seal.shown);hasSeal(seal.shared);assert.throws(()=>hasSeal(seal.plain),/必須含/,'未蓋章的 PNG 必須讓檢查失敗');
+  assert.equal(seal.same,true,'畫面與分享 PNG 的徽章區域一致');
+  const readable=result=>{assert.ok(result.title>2000,'稱號區必須保留實際文字像素');assert.ok(result.score>2000,'分數區必須保留實際文字像素');};
+  readable(seal);assert.throws(()=>readable({...seal,title:0}),/稱號區/);assert.throws(()=>readable({...seal,score:0}),/分數區/);
+  assert.ok(seal.bounds[0]>720&&seal.bounds[1]>1370&&seal.bounds[2]<1080&&seal.bounds[3]<1640,'徽章不遮住文字或進入 QR 頁尾');
   // 實際解碼海報上的 QR：必須回到公開入口的首頁。沒有 BarcodeDetector 的環境要明講沒驗到。
   const decoded=await page.evaluate(async()=>{if(!('BarcodeDetector'in window))return null;const read=async el=>(await new BarcodeDetector({formats:['qr_code']}).detect(el)).map(x=>x.rawValue);const blank=document.createElement('canvas');blank.width=blank.height=300;blank.getContext('2d').fillRect(0,0,300,300);return {card:await read(await createImageBitmap(shareFile)),shown:await read(document.getElementById('finish-card')),blank:await read(blank)};});
   assert.ok(decoded,'此環境沒有 BarcodeDetector，無法驗證海報 QR；請換用 macOS 的 Chrome 執行');
@@ -237,6 +254,8 @@ try{
   const expectedFull=cases.reduce((sum,c,i)=>sum+[50,30,10][Math.abs(i%3-c.answer)]+50,0);
   assert.equal(await page.evaluate(()=>totalScore()),expectedFull,'線索全看完的總分');assert.ok(finishText.includes(`${expectedFull}／600`));
   await page.reload();await page.locator('#finish-card').waitFor();assert.equal(await page.locator('#finish-card').getAttribute('alt'),finishText);
+  await page.waitForFunction(()=>!document.querySelector('.finish-seal')&&document.getElementById('finish-card').src===cardData);
+  await page.waitForFunction(()=>[...document.querySelectorAll('.confetti,.spark')].every(e=>getComputedStyle(e).opacity==='0'));
   await page.screenshot({path:`${artifactDir}/finish-mobile.png`,fullPage:true});
   // Select the non-native branch explicitly; still use the real browser clipboard.
   await page.evaluate(()=>Object.defineProperty(navigator,'share',{configurable:true,value:undefined}));
@@ -287,6 +306,27 @@ try{
     await context.close();
   }
   reports.push('系統分享成功／取消／失敗與可選取文字退路');
+  // Resuming straight to finish: wait for seal before sharing; asset failure stays usable.
+  const completed=JSON.stringify({v:4,cases:Object.fromEntries(cases.map(c=>[c.id,{selected:2,submitted:2,active:null,seen:[]}]))});
+  for(const mode of ['slow','failed','reduce']){
+    const {page,context}=await newPage(mode==='reduce'?{reducedMotion:'reduce'}:{});
+    await page.addInitScript(saved=>localStorage.setItem('tea-investigation:v4',saved),completed);
+    let release;const held=new Promise(resolve=>{release=resolve;});
+    if(mode==='slow')await page.route('**/tea-bureau-seal.webp',async route=>{await held;await route.continue();});
+    if(mode==='failed')await page.route('**/tea-bureau-seal.webp',route=>route.fulfill({status:404,body:'missing'}));
+    await page.goto(base+'/#finish',{waitUntil:'domcontentloaded'});await page.locator('#finish-card').waitFor();
+    if(mode==='slow'){
+      assert.ok(await page.locator('#share-card').isDisabled()&&await page.locator('#save-card').isDisabled(),'徽章載入前不可分享未蓋章卡');
+      assert.equal(await page.locator('#share-status').innerText(),'通關卡準備中…');release();
+    }
+    await page.waitForFunction(()=>!document.getElementById('share-card').disabled&&!document.getElementById('save-card').disabled);
+    assert.ok(await page.evaluate(()=>shareFile!==null),'徽章載入或失敗後仍可分享 PNG');
+    if(mode==='failed')assert.equal(await page.evaluate(()=>SEAL.naturalWidth),0);
+    else assert.ok(await page.evaluate(()=>SEAL.naturalWidth>0));
+    if(mode==='reduce')assert.equal(await page.locator('.finish-seal').count(),0,'減少動態效果時只顯示靜態徽章');
+    await context.close();
+  }
+  reports.push('通關章像素／畫面與 PNG 一致／稱號與分數保留／慢速載入與失敗退路／減少動態效果');
   // LINE 內建瀏覽器不能下載：存成圖片改成跳出分享圖讓人長按儲存，不觸發下載。
   {
     const {page,context}=await newPage({userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari Line/14.10.0'});
