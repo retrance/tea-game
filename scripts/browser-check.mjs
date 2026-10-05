@@ -185,11 +185,27 @@ try{
     await page.reload();await loaded(page,'#finish');await hashIs(page,'#finish');assert.ok(await page.evaluate(()=>shareFile!==null),'通關按鈕出現時 PNG 必須已備妥');
     assert.equal(await page.evaluate(()=>shareCalls.length),0);
     await page.locator('#share-card').click();assert.deepEqual(await page.evaluate(()=>shareCalls.map(c=>c.fileCount)),mode==='fail'?[1,0]:[1],'帶圖分享失敗要改用文字再試一次');
-    if(mode==='fail'){await page.locator('#share-fallback').waitFor({state:'visible'});assert.ok((await page.locator('#share-copy').inputValue()).includes(await page.evaluate(()=>persona()[0])));}
+    if(mode==='fail'){await page.locator('#share-fallback').waitFor({state:'visible'});const text=await page.locator('#share-copy').inputValue();assert.ok(text.includes(await page.evaluate(()=>persona()[0])));assert.equal(text.split('\n').length,3,'分享文字只有三行');}
     if(mode==='cancel')assert.equal(await page.locator('#share-fallback:visible').count(),0);
     await context.close();
   }
   reports.push('系統分享成功／取消／失敗與可選取文字退路');
+  // LINE 內建瀏覽器不能下載：存成圖片改成跳出分享圖讓人長按儲存，不觸發下載。
+  {
+    const {page,context}=await newPage({userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari Line/14.10.0'});
+    await loaded(page);
+    await page.evaluate(()=>{const s=freshState();for(const p of Object.values(s.cases)){p.selected=2;p.submitted=2;}localStorage.setItem(STORAGE_KEY,JSON.stringify(s));});
+    await page.reload();await loaded(page,'#finish');await hashIs(page,'#finish');
+    let downloaded=false;page.on('download',()=>{downloaded=true;});
+    await page.locator('#save-card').click();await page.locator('#save-view').waitFor({state:'visible'});
+    assert.ok(await page.evaluate(()=>document.querySelector('#save-view img').src===shareData&&shareData.startsWith('data:image/png')),'跳出的是帶 QR 的分享圖');
+    assert.equal(await page.evaluate(()=>document.activeElement.id),'save-close');
+    await page.waitForTimeout(300);assert.equal(downloaded,false,'內建瀏覽器不觸發下載');
+    await page.keyboard.press('Escape');assert.equal(await page.locator('#save-view').count(),0);
+    await page.locator('#save-card').click();await page.locator('#save-close').click();assert.equal(await page.locator('#save-view').count(),0);
+    await context.close();
+  }
+  reports.push('LINE 內建瀏覽器長按存圖');
   // Corrupt / older / blocked storage and keyboard navigation.
   for(const mode of ['corrupt','old','blocked']){
     const {page,context}=await newPage();
