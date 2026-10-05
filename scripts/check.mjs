@@ -84,4 +84,15 @@ assert.equal(evaluate('qrMatrix("x".repeat(200))'),null,'放不下的內容不�
 function checkTarget(source){const rule=source.match(/\.clue\s*\{([^}]*)\}/)?.[1]||'';for(const part of ['padding:13px 0','background-clip:content-box'])assert.ok(rule.includes(part),`點擊區缺 ${part}`);assert.ok(!rule.includes('inline-block'),'點擊區不可撐高行距');}
 checkTarget(html);assert.throws(()=>checkTarget(html.replace('padding:13px 0','padding:0')),/點擊區/);
 for(const forbidden of ['#cases','#compare','選擇案件','先跳過','重新調查','看本案重點','scoreDelta','type: \'range\'','sessionStorage','還無法判斷','收起提示','靠不住','靠得住','FINISH_LINES','finishLine','茶訊拆招員'])assert.ok(!script.includes(forbidden),`殘留舊流程 ${forbidden}`);
-console.log('PASS：六案來源分流、18 組回饋與調查局看法、六個通關稱號、QR 入口、順序入口、原答案不可覆蓋、存檔恢復／損壞／不可用；已知錯誤對照會失敗。');
+function checkMusic(source){
+  const tag=source.match(/<audio\b[^>]*id="bgm"[^>]*>/)?.[0]||'';
+  assert.ok(tag.includes('preload="none"')&&/\sloop(?:\s|>)/.test(tag),'音樂必須延遲載入並循環');
+  assert.ok(!/\s(?:src|autoplay)\b/.test(tag),'音樂不可預先下載或自動播放');
+  assert.ok(source.includes('id="music-toggle"')&&source.includes('aria-label="播放背景音樂"'),'音樂控制必須有鍵盤可用的按鈕與名稱');
+}
+checkMusic(html);
+assert.throws(()=>checkMusic(html.replace('preload="none"','preload="auto"')),/延遲載入/);
+assert.throws(()=>checkMusic(html.replace('<audio id="bgm"','<audio src="assets/audio/happy-adventure.mp3" id="bgm"')),/不可預先下載/);
+const musicBytes=readFileSync(new URL('../assets/audio/happy-adventure.mp3',import.meta.url));
+assert.ok(musicBytes.length>0&&musicBytes.length<1_000_000,'背景音樂檔案須存在且小於 1 MB');
+console.log('PASS：六案來源分流、18 組回饋與調查局看法、六個通關稱號、QR 入口、順序入口、原答案不可覆蓋、存檔恢復／損壞／不可用；音樂預設關閉、延遲載入與檔案大小；已知錯誤對照會失敗。');

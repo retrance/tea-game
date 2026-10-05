@@ -36,7 +36,104 @@ async function original(page,c){
 }
 function assertUnhinted(count){assert.equal(count,0,'判斷前線索洩漏');}
 assert.throws(()=>assertUnhinted(1),/判斷前線索洩漏/,'瀏覽器檢查也須有已知錯誤對照');
+async function musicClearOfContent(page){
+  const overlap=await page.evaluate(()=>{
+    const button=document.getElementById('music-toggle').getBoundingClientRect();
+    return [...document.querySelectorAll('.brand,.chat-name,.case-title,.finish-title,#storage-notice,.choice,.btn')].filter(e=>{
+      if(!e.getClientRects().length)return false;
+      let box=e.getBoundingClientRect();
+      if(e.matches('.brand,.chat-name,.case-title,.finish-title,#storage-notice')){
+        const range=document.createRange();range.selectNodeContents(e);box=range.getBoundingClientRect();
+      }
+      return box.width&&box.height&&box.left<button.right&&box.right>button.left&&box.top<button.bottom&&box.bottom>button.top;
+    }).map(e=>e.id||e.className);
+  });
+  assert.deepEqual(overlap,[],'音符不可遮住標題、提示或操作');
+}
 try{
+  // Actual MP3 playback: no request before consent, one persistent player across routes.
+  {
+    const {page,context}=await newPage();let audioRequests=0;
+    page.on('request',r=>{if(r.url().endsWith('/assets/audio/happy-adventure.mp3'))audioRequests++;});
+    await loaded(page);
+    const button=page.locator('#music-toggle');
+    async function assertQuiet(){
+      assert.equal(audioRequests,0,'玩家點擊前不可下載音樂');
+      assert.ok(await page.evaluate(()=>{const a=document.getElementById('bgm');return a.paused&&!a.getAttribute('src');}),'玩家點擊前必須靜音且無來源');
+    }
+    await assertQuiet();
+    await page.evaluate(()=>document.getElementById('bgm').src='bad.mp3');
+    await assert.rejects(assertQuiet,/不可下載|必須靜音/,'已知錯誤：提早指定來源必須被抓到');
+    await page.reload();await page.locator('#page-title').waitFor();audioRequests=0;await assertQuiet();
+    for(const width of [320,375,430,960]){
+      await page.setViewportSize({width,height:812});
+      const box=await button.boundingBox();assert.ok(box.width>=44&&box.height>=44&&box.x>=0&&box.x+box.width<=width,'音符必須留在畫面且有 44px 觸控區');
+      const brand=await page.locator('.brand').boundingBox();assert.ok(box.x>=brand.x+brand.width-52,'刊頭應為音符預留空間');
+      await noOverflow(page);await musicClearOfContent(page);
+    }
+    await page.evaluate(()=>{const e=document.querySelector('.music-control'),b=document.querySelector('.brand').getBoundingClientRect();e.style.left=b.left+'px';e.style.top=b.top+'px';e.style.right='auto';});
+    await assert.rejects(()=>musicClearOfContent(page),/不可遮住/,'已知錯誤：音符蓋住刊頭必須被抓到');
+    await page.evaluate(()=>{const e=document.querySelector('.music-control');for(const p of ['left','top','right'])e.style.removeProperty(p);});
+    await page.setViewportSize({width:375,height:812});
+    await button.focus();await page.keyboard.press('Enter');
+    await page.waitForFunction(()=>document.getElementById('music-toggle').dataset.state==='playing');
+    assert.ok(audioRequests>0);assert.equal(await button.getAttribute('aria-pressed'),'true');
+    assert.ok(await page.evaluate(()=>{const a=document.getElementById('bgm');return a.loop&&!a.paused&&a.duration>0;}),'實際 MP3 要能解碼播放並循環');
+    await page.evaluate(()=>window.testMusic=document.getElementById('bgm'));
+    await page.getByRole('link',{name:'開始調查',exact:true}).click();
+    await musicClearOfContent(page);
+    await page.locator('#verdict-1').check();await page.locator('#submit-case').click();
+    for(const view of ['review','finish','home']){
+      if(view==='finish')await page.evaluate(()=>{for(const p of Object.values(state.cases)){p.selected=2;p.submitted=2;}go('#finish');});
+      if(view==='home')await page.evaluate(()=>go('#home'));
+      await page.waitForFunction(v=>document.body.dataset.view===v,view);
+      assert.ok(await page.evaluate(()=>document.getElementById('bgm')===window.testMusic&&!window.testMusic.paused),'切頁不可重建或暫停音樂');
+      assert.ok(await button.isVisible());
+      for(const width of [320,375,430]){await page.setViewportSize({width,height:812});await noOverflow(page);await musicClearOfContent(page);}
+    }
+    await button.click();await page.waitForFunction(()=>document.getElementById('bgm').paused);
+    const pausedAt=await page.evaluate(()=>document.getElementById('bgm').currentTime);
+    assert.equal(await button.getAttribute('data-state'),'off');assert.equal(await button.getAttribute('aria-pressed'),'false');
+    await button.focus();await page.keyboard.press('Space');
+    await page.waitForFunction(t=>!document.getElementById('bgm').paused&&document.getElementById('bgm').currentTime>t,pausedAt);
+    await page.evaluate(()=>{const a=document.getElementById('bgm');a.currentTime=a.duration-.15;});
+    await page.waitForFunction(()=>{const a=document.getElementById('bgm');return !a.paused&&a.currentTime<1;});
+    await page.screenshot({path:`${artifactDir}/music-playing-mobile.png`});
+    await page.reload();await page.locator('#page-title').waitFor();
+    assert.ok(await page.evaluate(()=>document.getElementById('bgm').paused&&!document.getElementById('bgm').getAttribute('src')),'刷新後不可恢復發聲');
+    await context.close();
+  }
+  // Slow network: cancellation and rapid clicks must never revive a canceled play.
+  {
+    const {page,context}=await newPage({reducedMotion:'reduce'});
+    let release;const held=new Promise(resolve=>{release=resolve;});let requested=false;
+    await page.route('**/assets/audio/happy-adventure.mp3',async route=>{requested=true;await held;await route.continue();});
+    await loaded(page);const button=page.locator('#music-toggle');await button.click();
+    await page.waitForFunction(()=>document.getElementById('music-toggle').dataset.state==='loading');
+    assert.equal(await page.locator('#music-status').innerText(),'音樂載入中…');
+    assert.equal(await button.evaluate(e=>getComputedStyle(e,':after').animationName),'none','減少動態效果時停用轉圈');
+    await button.click();await button.click();await button.click();
+    assert.equal(await button.getAttribute('data-state'),'off');
+    release();
+    assert.ok(requested&&await page.evaluate(()=>{const a=document.getElementById('bgm');return a.paused&&!a.getAttribute('src')&&a.readyState===0;}),'首次載入取消後移除來源並停止下載、播放');
+    await button.click();await page.waitForFunction(()=>document.getElementById('music-toggle').dataset.state==='playing');
+    await context.close();
+  }
+  // Failed file and blocked play promise both offer a retry without blocking the game.
+  for(const mode of ['network','blocked']){
+    const {page,context}=await newPage();
+    if(mode==='network')await page.route('**/assets/audio/happy-adventure.mp3',route=>route.fulfill({status:404,body:'missing'}));
+    else await page.addInitScript(()=>{window.realPlay=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){return Promise.reject(new DOMException('blocked','NotAllowedError'));};});
+    await loaded(page);const button=page.locator('#music-toggle');await button.click();
+    await page.waitForFunction(()=>document.getElementById('music-toggle').dataset.state==='error');
+    assert.equal(await button.getAttribute('aria-pressed'),'false');assert.ok((await page.locator('#music-status').innerText()).includes('重試'));
+    await page.getByRole('link',{name:'開始調查',exact:true}).click();await page.locator('#verdict-0').check();
+    if(mode==='network')await page.unroute('**/assets/audio/happy-adventure.mp3');
+    else await page.evaluate(()=>{HTMLMediaElement.prototype.play=window.realPlay;});
+    await button.click();await page.waitForFunction(()=>document.getElementById('music-toggle').dataset.state==='playing');
+    await context.close();
+  }
+  reports.push('音樂預設不下載／實際 MP3 播放／跨頁持續／暫停恢復／循環／載入取消與連點／失敗重試／鍵盤與減少動態效果');
   const {page,context}=await newPage();await loaded(page);
   const cases=await page.evaluate(()=>SCENARIOS),verdicts=await page.evaluate(()=>VERDICTS);
   assert.equal(verdicts.length,3);
@@ -211,6 +308,7 @@ try{
     const {page,context}=await newPage();
     await page.addInitScript(mode=>{if(mode==='blocked'){Object.defineProperty(Storage.prototype,'getItem',{value:()=>{throw new Error('blocked');}});Object.defineProperty(Storage.prototype,'setItem',{value:()=>{throw new Error('blocked');}});}else localStorage.setItem('tea-investigation:v4',mode==='corrupt'?'{bad':JSON.stringify({v:3,cases:{}}));},mode);
     await loaded(page,`#case/${cases[5].id}`);await hashIs(page,`#case/${cases[0].id}`);
+    await musicClearOfContent(page);
     await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'verdict-0');
     await page.keyboard.press('Space');await page.keyboard.press('ArrowDown');assert.ok(await page.locator('#verdict-1').isChecked());
     await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'submit-case');
