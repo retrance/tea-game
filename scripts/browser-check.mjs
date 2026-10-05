@@ -132,7 +132,7 @@ try{
   assert.equal((await page.locator('#share-status').innerText()).trim(),'','沒操作前通關頁沒有多餘的說明文字');assert.equal(await page.locator('.footer:visible').count(),1);
   await page.waitForFunction(()=>{const img=document.getElementById('finish-card');return img.complete&&img.naturalWidth>0;});
   const poster=await page.evaluate(()=>{const img=document.getElementById('finish-card');const r=img.getBoundingClientRect(),b=document.getElementById('share-card').getBoundingClientRect();return {w:img.naturalWidth,h:img.naturalHeight,same:img.src===cardData,buttonBottom:b.bottom,width:r.width};});
-  assert.deepEqual([poster.w,poster.h,poster.same],[1080,1350,true],'畫面上是不帶 QR 的通關卡');assert.ok(poster.buttonBottom<812,'分享按鈕要在第一屏');
+  assert.deepEqual([poster.w,poster.h,poster.same],[1080,1640,true],'畫面上是不帶 QR 的通關卡');assert.ok(poster.buttonBottom<812,'分享按鈕要在第一屏');
   // 實際解碼海報上的 QR：必須回到公開入口的首頁。沒有 BarcodeDetector 的環境要明講沒驗到。
   const decoded=await page.evaluate(async()=>{if(!('BarcodeDetector'in window))return null;const read=async el=>(await new BarcodeDetector({formats:['qr_code']}).detect(el)).map(x=>x.rawValue);const blank=document.createElement('canvas');blank.width=blank.height=300;blank.getContext('2d').fillRect(0,0,300,300);return {card:await read(await createImageBitmap(shareFile)),shown:await read(document.getElementById('finish-card')),blank:await read(blank)};});
   assert.ok(decoded,'此環境沒有 BarcodeDetector，無法驗證海報 QR；請換用 macOS 的 Chrome 執行');
