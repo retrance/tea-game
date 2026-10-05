@@ -349,15 +349,20 @@ function cardCanvas(share=false){
   const ctx=canvas.getContext('2d');if(!ctx)return null;
   const [title,line]=persona(),cream='#f6f0e2',amber='#f6b93b',ink='#17231d',font=(weight,size)=>`${weight} ${size}px "Noto Serif TC",serif`;
   const box=(x,y,w,h,r)=>{ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);ctx.fill();};
-  const bg=ctx.createLinearGradient(0,0,W,CARD);bg.addColorStop(0,'#8a2f27');bg.addColorStop(.7,'#4a1613');ctx.fillStyle=bg;ctx.fillRect(0,0,W,CARD);
+  // 卡面底色疊三層：多段的斜向漸層、左上暖光與右下暗角，再鋪一層細顆粒，避免大面積漸層出現色階斷層。
+  const bg=ctx.createLinearGradient(0,0,W*.55,CARD);[[0,'#9a3a2c'],[.28,'#7f2b24'],[.55,'#65201d'],[.8,'#4f1816'],[1,'#3f1211']].forEach(([at,color])=>bg.addColorStop(at,color));ctx.fillStyle=bg;ctx.fillRect(0,0,W,CARD);
+  const light=ctx.createRadialGradient(150,90,0,150,90,900);[[0,'#e2794a66'],[.35,'#c8553a2e'],[1,'#c8553a00']].forEach(([at,color])=>light.addColorStop(at,color));ctx.fillStyle=light;ctx.fillRect(0,0,W,CARD);
+  const shade=ctx.createRadialGradient(W,CARD,0,W,CARD,1000);[[0,'#1c070799'],[.5,'#1c070733'],[1,'#1c070700']].forEach(([at,color])=>shade.addColorStop(at,color));ctx.fillStyle=shade;ctx.fillRect(0,0,W,CARD);
+  const grain=document.createElement('canvas');grain.width=grain.height=160;const g=grain.getContext('2d');
+  if(g){let seed=7;for(let y=0;y<160;y++)for(let x=0;x<160;x++){seed=seed*16807%2147483647;g.fillStyle=seed%2?'#ffffff':'#000000';g.globalAlpha=(seed%97)/97*.07;g.fillRect(x,y,1,1);}ctx.fillStyle=ctx.createPattern(grain,'repeat');ctx.fillRect(0,0,W,CARD);}
   ctx.strokeStyle='#f6f0e240';ctx.lineWidth=3;ctx.strokeRect(40,40,W-80,CARD-80);
   ctx.textAlign='left';ctx.fillStyle='#f6f0e2cc';ctx.font=font(700,32);ctx.fillText('茶訊調查局',M,140);
   ctx.fillStyle=amber;ctx.font=font(700,38);ctx.fillText('我的調查員類型',M,250);
   ctx.font=font(900,150);ctx.fillStyle='#f6b93b59';ctx.fillRect(M,367,ctx.measureText(title).width,40);
   ctx.fillStyle=cream;ctx.fillText(title,M,400);
   ctx.font=font(700,42);ctx.fillText(`「${line}」`,M-14,478,W-M*2);
-  // 六角圖的底板只比卡面暗一階、描一圈細邊：分得出層次，又不搶稱號。
-  ctx.fillStyle='#2a0b0a73';box(M,540,W-M*2,586,32);ctx.strokeStyle='#f6f0e22e';ctx.lineWidth=2;ctx.stroke();
+  // 六角圖的底板只比卡面暗一階、不描邊：分得出層次，又不搶稱號。
+  ctx.fillStyle='#2a0b0a66';box(M,540,W-M*2,586,32);
   const cx=540,cy=830,R=160,pt=(i,r)=>radarPoint(i,r,cx,cy);
   const path=r=>{ctx.beginPath();SCENARIOS.forEach((c,i)=>{const [x,y]=pt(i,typeof r==='function'?r(c):r);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();};
   ctx.strokeStyle='#f6f0e238';ctx.lineWidth=2;for(const f of [.25,.5,.75,1]){path(R*f);ctx.stroke();}
