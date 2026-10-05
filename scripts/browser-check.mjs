@@ -169,16 +169,46 @@ try{
     const fills=await page.evaluate(()=>[getComputedStyle(document.querySelector('.choice.checked')).backgroundImage,getComputedStyle(document.getElementById('submit-case')).backgroundImage]);assert.notEqual(fills[0],fills[1],'選中的選項和送出不可同一個顏色');
     const choices=await page.locator('.choices').boundingBox();assert.ok(choices.height<=70,`選項應只佔一列 ${choices.height}`);
     await page.locator('#submit-case').click();await hashIs(page,`#review/${c.id}`);
-    assert.equal(await page.locator('#choice-feedback').innerText(),c.feedback[choice]);
+    await page.locator('#choice-feedback').waitFor({state:'visible'});assert.equal(await page.locator('#choice-feedback').innerText(),c.feedback[choice]);await noOverflow(page);
     assert.equal(await page.locator('#verdict-compare').innerText(),verdicts[c.answer],'印章直接顯示判斷結果');
     assert.ok(await page.locator('.avatar.bureau img').evaluate(img=>img.complete&&img.naturalWidth>0&&img.getAttribute('src')==='assets/images/tea-bureau-avatar.webp'),'調查局頭像須載入中央盾牌');
     if(i===0){await page.waitForFunction(()=>[...document.querySelectorAll('.chat,.row.me,.review .stack>*,.stamp')].every(e=>getComputedStyle(e).opacity==='1'));await page.screenshot({path:`${artifactDir}/bureau-review-mobile.png`});}
     assert.ok((await page.locator('.row.me .saved-choice').innerText()).includes(verdicts[choice]),'解析開頭是玩家自己的回覆');
     assert.equal(await page.locator('.feedback').count(),2,'解析只有看法和做法兩個區塊');
+    const todoStyle=await page.locator('.todo-title').evaluate(el=>({tag:el.tagName,size:parseFloat(getComputedStyle(el).fontSize),weight:Number(getComputedStyle(el).fontWeight),bodySize:parseFloat(getComputedStyle(el.nextElementSibling).fontSize),gap:parseFloat(getComputedStyle(el).marginBottom)}));
+    assert.ok(todoStyle.tag==='H2'&&todoStyle.size>todoStyle.bodySize&&todoStyle.weight>=700&&todoStyle.gap>=8,'建議標題要比內文醒目且有間距');
+    const headingStyles=await page.locator('.feedback h2').evaluateAll(elements=>elements.map(el=>{const s=getComputedStyle(el);return [s.fontFamily,s.fontSize,s.fontWeight,s.color,s.lineHeight];}));
+    assert.deepEqual(headingStyles[1],headingStyles[0],'建議與結論標題使用同一套字體樣式');
     assert.equal(await page.locator('.attachment').count(),0,'解析不重貼訊息附的資料');
     assert.deepEqual(await page.evaluate(()=>[...document.querySelector('.feedback').children].map(e=>e.tagName+(e.id?'#'+e.id:''))),['DIV#verdict-compare','H2','P#choice-feedback'],'第一塊只有印章、結論、回饋');
-    if(i===0){const first=page.locator(`#clue-${c.segments.find(s=>s.id).id}`);const line=await page.evaluate(()=>{const t=document.querySelector('.message-text');return {h:t.offsetHeight,lh:parseFloat(getComputedStyle(t).lineHeight)};});assert.ok(Math.abs(line.h/line.lh-Math.round(line.h/line.lh))<.05,`線索不可撐高行距 ${JSON.stringify(line)}`);await first.focus();await page.keyboard.press('Enter');assert.equal(await first.getAttribute('aria-expanded'),'true');await page.keyboard.press('Space');assert.equal(await first.getAttribute('aria-expanded'),'false');assert.equal(await page.locator('.clue.seen').count(),1);await page.evaluate(id=>{state.cases[id].seen=[];save();},c.id);await page.reload();await hashIs(page,`#review/${c.id}`);}
+    if(i===0){const first=page.locator(`#clue-${c.segments.find(s=>s.id).id}`);const line=await page.evaluate(()=>{const t=document.querySelector('.message-text');return {h:t.offsetHeight,lh:parseFloat(getComputedStyle(t).lineHeight)};});assert.ok(Math.abs(line.h/line.lh-Math.round(line.h/line.lh))<.05,`線索不可撐高行距 ${JSON.stringify(line)}`);await first.focus();await page.keyboard.press('Enter');assert.equal(await first.getAttribute('aria-expanded'),'true');await page.keyboard.press('Space');assert.equal(await first.getAttribute('aria-expanded'),'false');assert.equal(await page.locator('.clue.seen').count(),1);await page.reload();await hashIs(page,`#review/${c.id}`);assert.equal(await page.locator('.clue.seen').count(),1);assert.equal(await page.locator('.clue:not(.locked):not(.seen)').getAttribute('id'),`clue-${c.segments.filter(s=>s.id)[1].id}`);await page.evaluate(id=>{state.cases[id].seen=[];save();},c.id);await page.reload();await hashIs(page,`#review/${c.id}`);}
     assert.equal(await page.locator('.clue.seen').count(),0,'線索一開始都是未看');
+    await page.locator('.clue-guide').waitFor({state:'visible'});
+    assert.ok((await page.locator('.clue-guide').innerText()).includes('點黃色的「＋」'));
+    assert.ok((await page.locator('.clue:not(.locked):not(.seen)').evaluateAll(elements=>elements.map(el=>getComputedStyle(el,':before').animationName))).every(name=>name==='clue-plus'),'當前黃色加號閃動');
+    assert.equal(await page.locator('.clue:not(.locked):not(.seen)').count(),1,'一次只揭示一條黃色線索');
+    const locked=page.locator('.clue.locked').first();
+    assert.equal(await locked.getAttribute('role'),null,'未揭示的片段不是按鈕');
+    assert.equal(await locked.getAttribute('tabindex'),'-1');
+    assert.equal(await locked.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)','未揭示片段不染黃');
+    await locked.evaluate(el=>el.click());
+    assert.equal(await page.locator('.clue.seen').count(),0,'點尚未揭示的片段不收集');
+    const replyDelays=await page.locator('.review .stack>.bubble,.review .stack>.line').evaluateAll(elements=>elements.map(el=>getComputedStyle(el).animationDelay));
+    assert.deepEqual(replyDelays,['0.35s','1.65s','2.95s','4.25s'],'四則回覆依序出現');
+    if(i===0){
+      await page.emulateMedia({reducedMotion:'reduce'});
+      assert.ok((await page.locator('.review .stack>.bubble,.review .stack>.line').evaluateAll(elements=>elements.map(el=>({visible:getComputedStyle(el).visibility,animation:getComputedStyle(el).animationName})))).every(s=>s.visible==='visible'&&s.animation==='none'),'減少動態效果時全部回覆立即顯示');
+      assert.ok((await page.locator('.clue').evaluateAll(elements=>elements.map(el=>getComputedStyle(el,':before').animationName))).every(name=>name==='none'),'減少動態效果停用線索動畫');
+      await page.emulateMedia({reducedMotion:'no-preference'});
+      const first=page.locator('.clue').first();
+      const checkMarker=async()=>assert.equal(await first.evaluate(el=>getComputedStyle(el,':before').content),'"＋"','未收集線索顯示＋');
+      await checkMarker();
+      await first.evaluate(el=>el.classList.add('seen'));
+      await assert.rejects(checkMarker,/未收集線索顯示＋/,'已知錯誤標記必須被瀏覽器檢查抓到');
+      await first.evaluate(el=>el.classList.remove('seen'));
+    }
+    await page.locator('.review .message').waitFor({state:'visible'});
+    assert.equal(await page.locator('#clue-count').innerText(),`已收集 0／${c.segments.filter(s=>s.id).length} 條線索`);
     assert.ok(!(await page.locator('#next-action').getAttribute('class')).includes('primary'),'線索未看完，下一案不是主要按鈕');
     assert.equal(await page.locator('input[type=radio]').count(),0,'解析不再答題');
     assert.equal(await page.locator('.clue').count(),c.segments.filter(s=>s.id).length);
@@ -190,6 +220,14 @@ try{
         const button=page.locator(`#clue-${s.id}`);await button.scrollIntoViewIfNeeded();
         const before=await button.getAttribute('aria-expanded');if(before!=='true')await button.click();
         assert.equal(await page.locator('.clue-note:visible').count(),1);
+        const remaining=await page.evaluate(id=>cluesOf(getCase(id)).length-state.cases[id].seen.length,c.id);
+        assert.equal(await page.locator('.clue:not(.locked):not(.seen)').count(),remaining>0?1:0,'收集後只揭示下一條');
+        assert.equal(await button.evaluate(el=>getComputedStyle(el,':before').animationName),'none','收集後加號停止閃動');
+        assert.equal(await button.evaluate(el=>getComputedStyle(el).boxShadow),'none','線索不產生多餘陰影線');
+        assert.equal(await button.evaluate(el=>getComputedStyle(el).textDecorationLine),'none','線索不加底線');
+        assert.ok((await button.getAttribute('aria-label')).startsWith('已收集：'));
+        assert.equal(await page.locator(`#hint-${s.id} .clue-collected`).count(),0,'提示不重複收集狀態');
+        assert.equal(await button.evaluate(el=>getComputedStyle(el,':before').content),'"✓ "');
         assert.ok((await button.getAttribute('class')).includes('seen'),'點過的線索要標成已看');
         const geometry=await page.evaluate(id=>{
           const b=document.getElementById(`clue-${id}`).getBoundingClientRect(),n=document.getElementById(`hint-${id}`).getBoundingClientRect(),a=document.querySelector('.actionbar').getBoundingClientRect(),head=document.querySelector('.chat-head').getBoundingClientRect();
@@ -207,7 +245,7 @@ try{
       }
     }
     await page.setViewportSize({width:375,height:812});
-    assert.ok((await page.locator('#clue-count').innerText()).includes('都看完了'));
+    assert.ok((await page.locator('#clue-count').innerText()).includes('本案線索收集完成'));
     assert.ok((await page.locator('#next-action').getAttribute('class')).includes('primary'));
     // Browser back and explicit relook preserve the first submission and original content.
     await page.goBack();await hashIs(page,`#case/${c.id}`);await original(page,c);
@@ -216,7 +254,7 @@ try{
     await page.getByRole('link',{name:'回到解析',exact:true}).click();await hashIs(page,`#review/${c.id}`);
     assert.equal(await page.locator('.footer:visible').count(),0,'案件頁不顯示關於');
     await page.reload();await hashIs(page,`#review/${c.id}`);
-    assert.equal(await page.locator('#choice-feedback').innerText(),c.feedback[choice]);
+    await page.locator('#choice-feedback').waitFor({state:'visible'});assert.equal(await page.locator('#choice-feedback').innerText(),c.feedback[choice]);await noOverflow(page);
     assert.equal(await page.locator('.chat-head a,.chat-head button').count(),0,'聊天室標題列不放返回或回首頁');
     if(i===5)assert.equal(await page.locator('#next-action').innerText(),'領取通關卡 →');
     if(i===1){const ids=c.segments.filter(s=>s.id).map(s=>s.id);await page.locator(`#clue-${ids[0]}`).click();await page.locator(`#clue-${ids[1]}`).click();assert.equal(await page.locator('.clue-note:visible').count(),1,'點別條線索，前一條要收起');assert.equal(await page.locator(`#clue-${ids[0]}`).getAttribute('aria-expanded'),'false');await page.locator(`#clue-${ids[1]}`).click();}
@@ -275,7 +313,7 @@ try{
     for(const c of cases){
       await page.locator(`#verdict-${choice}`).check();
       await page.evaluate(()=>{document.getElementById('case-form').requestSubmit();document.getElementById('case-form')?.requestSubmit();});
-      await hashIs(page,`#review/${c.id}`);assert.equal(await page.locator('#choice-feedback').innerText(),c.feedback[choice]);
+      await hashIs(page,`#review/${c.id}`);await page.locator('#choice-feedback').waitFor({state:'visible'});assert.equal(await page.locator('#choice-feedback').innerText(),c.feedback[choice]);await noOverflow(page);
       assert.equal(await page.locator('.clue-note:visible').count(),0);
       await page.locator('.actionbar a').click();
     }
