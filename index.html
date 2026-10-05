@@ -347,7 +347,7 @@ const radarPoint=(i,r,cx,cy)=>{const a=-Math.PI/2+i*Math.PI/3;return [cx+r*Math.
 function cardCanvas(share=false){
   const W=1080,CARD=1350,FOOT=283,M=96,H=share?CARD+FOOT:CARD,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext('2d');if(!ctx)return null;
-  const [title,line]=persona(),cream='#f6f0e2',amber='#f6b93b',ink='#17231d',tea='#8a4f24',font=(weight,size)=>`${weight} ${size}px "Noto Serif TC",serif`;
+  const [title,line]=persona(),cream='#f6f0e2',amber='#f6b93b',ink='#17231d',font=(weight,size)=>`${weight} ${size}px "Noto Serif TC",serif`;
   const box=(x,y,w,h,r)=>{ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);ctx.fill();};
   const bg=ctx.createLinearGradient(0,0,W,CARD);bg.addColorStop(0,'#8a2f27');bg.addColorStop(.7,'#4a1613');ctx.fillStyle=bg;ctx.fillRect(0,0,W,CARD);
   ctx.strokeStyle='#f6f0e240';ctx.lineWidth=3;ctx.strokeRect(40,40,W-80,CARD-80);
@@ -356,15 +356,15 @@ function cardCanvas(share=false){
   ctx.font=font(900,150);ctx.fillStyle='#f6b93b59';ctx.fillRect(M,367,ctx.measureText(title).width,40);
   ctx.fillStyle=cream;ctx.fillText(title,M,400);
   ctx.font=font(700,42);ctx.fillText(`「${line}」`,M-14,478,W-M*2);
-  // 六角圖放在淺色底板上，和深色卡面分開。
-  ctx.fillStyle=cream;box(M,540,W-M*2,586,32);
+  // 六角圖的底板只比卡面暗一階、描一圈細邊：分得出層次，又不搶稱號。
+  ctx.fillStyle='#2a0b0a73';box(M,540,W-M*2,586,32);ctx.strokeStyle='#f6f0e22e';ctx.lineWidth=2;ctx.stroke();
   const cx=540,cy=830,R=160,pt=(i,r)=>radarPoint(i,r,cx,cy);
   const path=r=>{ctx.beginPath();SCENARIOS.forEach((c,i)=>{const [x,y]=pt(i,typeof r==='function'?r(c):r);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();};
-  ctx.strokeStyle='#17231d33';ctx.lineWidth=2;for(const f of [.25,.5,.75,1]){path(R*f);ctx.stroke();}
+  ctx.strokeStyle='#f6f0e238';ctx.lineWidth=2;for(const f of [.25,.5,.75,1]){path(R*f);ctx.stroke();}
   SCENARIOS.forEach((c,i)=>{ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(...pt(i,R));ctx.stroke();});
-  path(c=>R*scoreOf(c)/100);ctx.fillStyle='#f6b93bb3';ctx.fill();ctx.strokeStyle=tea;ctx.lineWidth=6;ctx.stroke();
+  path(c=>R*scoreOf(c)/100);ctx.fillStyle='#f6b93b80';ctx.fill();ctx.strokeStyle=amber;ctx.lineWidth=6;ctx.stroke();
   ctx.font=font(700,36);
-  SCENARIOS.forEach((c,i)=>{const [x,y]=pt(i,R+28),side=Math.round(x-cx);ctx.textAlign=side>0?'left':side<0?'right':'center';const top=i===0?y-46:i===3?y+34:y-8;ctx.fillStyle=ink;ctx.fillText(c.angle,x,top);ctx.fillStyle=tea;ctx.fillText(String(scoreOf(c)),x,top+44);});
+  SCENARIOS.forEach((c,i)=>{const [x,y]=pt(i,R+28),side=Math.round(x-cx);ctx.textAlign=side>0?'left':side<0?'right':'center';const top=i===0?y-46:i===3?y+34:y-8;ctx.fillStyle=cream;ctx.fillText(c.angle,x,top);ctx.fillStyle=amber;ctx.fillText(String(scoreOf(c)),x,top+44);});
   ctx.textAlign='left';ctx.fillStyle=cream;ctx.font=font(700,40);ctx.fillText('判斷力',M,1262);
   ctx.textAlign='right';ctx.fillText('／600',W-M,1262);
   const unit=ctx.measureText('／600').width;ctx.fillStyle=amber;ctx.font=font(900,104);ctx.fillText(String(totalScore()),W-M-unit-8,1262);
