@@ -11,7 +11,7 @@
 | `2026-spring/index.html` | 獨立保留的春季班十題真假題，中英雙語 |
 | `AGENTS.md` | 給 agent 的工作規則；`CLAUDE.md` 只橋接到它 |
 | `scripts/check.mjs` | 資料、回饋、調查局看法、通關稱號、來源分流、存檔與順序入口的檢查 |
-| `scripts/browser-check.mjs` | 完整瀏覽器流程、線索收集與計分、通關卡與 QR 解碼、分享分支、手機版面與鍵盤驗證 |
+| `scripts/browser-check.mjs` | 完整瀏覽器流程、線索收集與計分、通關卡與 QR 解碼、分享分支、LINE 內建瀏覽器長按存圖、手機版面與鍵盤驗證 |
 
 產品要求以規格為準；實際畫面以 `index.html` 為準。修改需求時同步更新規格與檢查；案件全文不在文件重抄。
 
@@ -22,6 +22,12 @@ python3 -m http.server 8765 --bind 127.0.0.1
 ```
 
 開啟 <http://127.0.0.1:8765/>。春季班版在 `/2026-spring/`。本機修改不會自動發布 GitHub Pages。
+
+手機實測（LINE 內建瀏覽器、Safari）：手機和 Mac 連同一個 Wi-Fi，改用下面的指令開，手機開 `http://<Mac 區網 IP>:8766/`（區網 IP 用 `ipconfig getifaddr en0` 查）。這會把整個資料夾（含 `.git`）開放給同一個網路，測完就關。
+
+```bash
+python3 -m http.server 8766 --bind 0.0.0.0
+```
 
 ## 路由與存檔
 
