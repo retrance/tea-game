@@ -6,7 +6,7 @@
 
 | 檔案 | 職責 |
 | --- | --- |
-| `index.html` | 可玩介面；`SCENARIOS` 是案件全文、訊息附的資料、線索、回饋、調查局看法與來源的唯一來源；`PERSONAS` 是通關稱號，`GAME_URL` 是分享與 QR 指向的公開入口 |
+| `index.html` | 可玩介面；`SCENARIOS` 是案件全文、訊息附的資料、線索、回饋、調查局看法與來源的唯一來源；`PERSONAS`、`BIAS_PERSONAS`、`TOP_PERSONA` 是通關稱號，`GAME_URL` 是分享與 QR 指向的公開入口 |
 | `assets/audio/happy-adventure.mp3` | 遊戲背景音樂；由玩家提供的音樂壓縮成 MP3，隨網站一起部署；播放行為見規格的介面原則 |
 | `assets/images/tea-bureau-avatar.webp` | 中央茶葉盾牌的簡化版本；用於首頁刊頭與調查局回覆頭像 |
 | `assets/images/tea-bureau-seal.webp` | 玩家提供的調查局徽章；用於通關卡與分享圖的結案章 |

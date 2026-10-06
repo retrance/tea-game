@@ -78,9 +78,9 @@ assert.deepEqual(route(`#case/${cases[5].id}`,ctx),{view:'case',id:second});
 assert.deepEqual(route(`#review/${id}`,ctx),{view:'review',id});
 const all=structuredClone(initial);for(const p of Object.values(all.cases)){p.submitted=2;p.selected=2;}
 assert.deepEqual(route('#finish',context(JSON.stringify(all))),{view:'finish'});
-// 每個判斷角度都要有自己的通關稱號，海報才不會人人一樣。
-const personas=evaluate('PERSONAS'),topPersona=evaluate('TOP_PERSONA');
-function checkPersonas(map){for(const c of cases)assert.ok(map[c.angle]?.length===2&&map[c.angle].every(x=>x.trim()),`${c.angle} 缺通關稱號`);assert.equal(new Set(Object.values(map).map(p=>p[0]).concat(topPersona[0])).size,cases.length+1,'通關稱號不可重複');}
+// 每個判斷角度、每個選項傾向都要有自己的通關稱號，海報才不會人人一樣。
+const personas=evaluate('PERSONAS'),biasPersonas=evaluate('BIAS_PERSONAS'),topPersona=evaluate('TOP_PERSONA');
+function checkPersonas(map){for(const c of cases)assert.ok(map[c.angle]?.trim(),`${c.angle} 缺通關稱號`);assert.equal(biasPersonas.length,3);assert.equal(new Set(Object.values(map).concat(biasPersonas,topPersona)).size,cases.length+4,'通關稱號不可重複');}
 checkPersonas(personas);
 const noPersona=structuredClone(personas);delete noPersona[cases[4].angle];assert.throws(()=>checkPersonas(noPersona),/缺通關稱號/);
 // 通關卡的 QR 指向公開入口；能不能掃由瀏覽器檢查實際解碼。
@@ -102,11 +102,15 @@ function checkCollection(source){
   assert.ok(source.includes('!clueAvailable(c,id)')&&source.includes('.clue.locked:before{content:none'),'未揭示線索不可操作或顯示加號');
   assert.ok(source.includes('.clue.locked{background-color:transparent'),'未揭示片段不能是黃色');
   assert.ok(source.includes('animation:clue-plus 1.2s')&&source.includes('animation-delay:4.25s'),'缺少加號動畫或回覆順序');
+  assert.ok(source.includes('!p.active&&cluesOf(c).find')&&source.includes('.message-text.reading{color:'),'解說開著時要聚焦在當前線索');
+  assert.ok(source.includes('toggleClue(c,s.id,true)')&&source.includes("id:'skip-clues'")&&source.includes('看線索 ${seen+1}／${total} →'),'缺少底部導覽按鈕或跳過入口');
 }
 checkCollection(html);
 assert.throws(()=>checkCollection(html.replace('!clueAvailable(c,id)','false')),/未揭示線索/);
 assert.throws(()=>checkCollection(html.replace('.clue.locked{background-color:transparent','.clue.locked{background-color:yellow')),/不能是黃色/);
 assert.throws(()=>checkCollection(html.replace('.clue{','.clue{box-shadow:0 2px 0 yellow;')),/多餘線條/);
+assert.throws(()=>checkCollection(html.replace('!p.active&&cluesOf(c).find','cluesOf(c).find')),/聚焦在當前線索/);
+assert.throws(()=>checkCollection(html.replace("id:'skip-clues'","id:'skip'")),/底部導覽按鈕/);
 for(const bad of [html.replace('點黃色的「＋」','測試缺少指令'),html.replace(".clue:before{content:'＋'",".clue:before{content:''"),html.replace('本案線索收集完成 ✓','完成')])assert.throws(()=>checkCollection(bad),/缺少收集/);
 
 for(const forbidden of ['#cases','#compare','選擇案件','先跳過','重新調查','看本案重點','scoreDelta','type: \'range\'','sessionStorage','還無法判斷','收起提示','靠不住','靠得住','FINISH_LINES','finishLine','茶訊拆招員'])assert.ok(!script.includes(forbidden),`殘留舊流程 ${forbidden}`);
