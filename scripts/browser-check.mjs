@@ -500,7 +500,7 @@ try{
     const enCopied=await page.evaluate(()=>navigator.clipboard.readText());
     assert.equal(enCopied.split('\n').length,3);assert.ok(enCopied.includes(enPersona)&&enCopied.includes('/600'));assert.ok(enCopied.endsWith('?lang=en'),'英文分享文字帶英文入口');assert.ok(!/[\p{Script=Han}]/u.test(enCopied));
     const enDownload=page.waitForEvent('download');await page.locator('#save-card').click();
-    assert.equal((await enDownload).suggestedFilename(),`Tea-Fact-Check-Bureau-${enPersona.replace(/\s+/g,'-')}.png`);
+    assert.equal((await enDownload).suggestedFilename(),`Tea-Bureau-of-Investigation-${enPersona.replace(/\s+/g,'-')}.png`);
     await page.screenshot({path:`${artifactDir}/finish-english-mobile.png`,fullPage:true});
     // 切回中文：進度與通關頁都留著，網址只拿掉 lang、其他參數保留；再切回英文，網址帶回參數，重新整理仍是英文。
     const before=await page.evaluate(()=>JSON.stringify(state));
