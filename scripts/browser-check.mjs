@@ -38,17 +38,20 @@ function assertUnhinted(count){assert.equal(count,0,'判斷前線索洩漏');}
 assert.throws(()=>assertUnhinted(1),/判斷前線索洩漏/,'瀏覽器檢查也須有已知錯誤對照');
 async function musicClearOfContent(page){
   const overlap=await page.evaluate(()=>{
-    const button=document.getElementById('music-toggle').getBoundingClientRect();
-    return [...document.querySelectorAll('.brand,.chat-name,.case-title,.finish-title,#storage-notice,.choice,.btn')].filter(e=>{
+    // 右上膠囊裡的語言鈕與音符都不能蓋住內容。
+    return ['music-toggle','lang-toggle'].flatMap(id=>{const button=document.getElementById(id).getBoundingClientRect();return [...document.querySelectorAll('.brand,.chat-name,.case-title,.finish-title,#storage-notice,.choice,.btn,.footer summary,#skip-clues')].filter(e=>{
       if(!e.getClientRects().length)return false;
       let box=e.getBoundingClientRect();
       if(e.matches('.brand,.chat-name,.case-title,.finish-title,#storage-notice')){
         const range=document.createRange();range.selectNodeContents(e);box=range.getBoundingClientRect();
       }
       return box.width&&box.height&&box.left<button.right&&box.right>button.left&&box.top<button.bottom&&box.bottom>button.top;
-    }).map(e=>e.id||e.className);
+    }).map(e=>`${id}:${e.id||e.className||e.tagName}`);});
   });
-  assert.deepEqual(overlap,[],'音符不可遮住標題、提示或操作');
+  assert.deepEqual(overlap,[],'語言鈕與音符不可遮住標題、提示或操作');
+  // 語言鈕與音符合在右上角的膠囊裡，貼齊遊戲外框右緣。
+  const place=await page.evaluate(()=>{const edge=document.querySelector('.shell').getBoundingClientRect().right;return ['lang-toggle','music-toggle'].map(id=>{const b=document.getElementById(id).getBoundingClientRect();return {id,top:b.top,bottom:b.bottom,right:b.right,edge};});});
+  for(const p of place)assert.ok(p.top>=0&&p.bottom<=64&&p.right<=p.edge&&p.right>p.edge-140,`${p.id} 要在右上角 ${JSON.stringify(p)}`);
 }
 try{
   // Actual MP3 playback: no request before consent, one persistent player across routes.
@@ -68,12 +71,12 @@ try{
     for(const width of [320,375,430,960]){
       await page.setViewportSize({width,height:812});
       const box=await button.boundingBox();assert.ok(box.width>=44&&box.height>=44&&box.x>=0&&box.x+box.width<=width,'音符必須留在畫面且有 44px 觸控區');
-      const brand=await page.locator('.brand').boundingBox();assert.ok(box.x>=brand.x+brand.width-52,'刊頭應為音符預留空間');
+      const lang=await page.locator('#lang-toggle').boundingBox(),corner=await page.locator('.corner-controls').boundingBox(),brand=await page.locator('.brand').boundingBox();assert.ok(lang.width>=44&&lang.height>=44&&lang.y<60&&lang.x+lang.width<=width,'語言鈕在右上且有 44px 觸控區');assert.ok(corner.x>=brand.x+brand.width-104,'刊頭應為右上膠囊預留空間');
       await noOverflow(page);await musicClearOfContent(page);
     }
-    await page.evaluate(()=>{const e=document.querySelector('.music-control'),b=document.querySelector('.brand').getBoundingClientRect();e.style.left=b.left+'px';e.style.top=b.top+'px';e.style.right='auto';});
+    await page.evaluate(()=>{const e=document.querySelector('.corner-controls'),b=document.querySelector('.brand').getBoundingClientRect();e.style.left=b.left+'px';e.style.top=b.top+'px';e.style.right='auto';});
     await assert.rejects(()=>musicClearOfContent(page),/不可遮住/,'已知錯誤：音符蓋住刊頭必須被抓到');
-    await page.evaluate(()=>{const e=document.querySelector('.music-control');for(const p of ['left','top','right'])e.style.removeProperty(p);});
+    await page.evaluate(()=>{const e=document.querySelector('.corner-controls');for(const p of ['left','top','right'])e.style.removeProperty(p);});
     await page.setViewportSize({width:375,height:812});
     await button.focus();await page.keyboard.press('Enter');
     await page.waitForFunction(()=>document.getElementById('music-toggle').dataset.state==='playing');
@@ -166,7 +169,7 @@ try{
     if(i===0){await page.reload();await page.locator(`#verdict-${choice}`).waitFor();assert.ok(await page.locator(`#verdict-${choice}`).isChecked());}
     assert.equal(await page.locator('#reply-draft').innerText(),`我覺得是「${verdicts[choice]}」`);
     assert.ok((await page.locator('#submit-case').getAttribute('class')).includes('primary'),'選了看法，送出要變主要按鈕');
-    const fills=await page.evaluate(()=>[getComputedStyle(document.querySelector('.choice.checked')).backgroundImage,getComputedStyle(document.getElementById('submit-case')).backgroundImage]);assert.notEqual(fills[0],fills[1],'選中的選項和送出不可同一個顏色');
+    const fills=await page.evaluate(()=>[document.querySelector('.choice.checked'),document.getElementById('submit-case')].map(e=>{const c=getComputedStyle(e);return c.backgroundColor+c.backgroundImage;}));assert.notEqual(fills[0],fills[1],'選中的選項和送出不可同一個顏色');
     const choices=await page.locator('.choices').boundingBox();assert.ok(choices.height<=70,`選項應只佔一列 ${choices.height}`);
     await page.locator('#submit-case').click();await hashIs(page,`#review/${c.id}`);
     await page.locator('#choice-feedback').waitFor({state:'visible'});assert.equal(await page.locator('#choice-feedback').innerText(),c.feedback[choice]);await noOverflow(page);
@@ -408,6 +411,112 @@ try{
     await context.close();
   }
   reports.push('損壞／舊存檔／停用儲存仍可走完全程／鍵盤');
+  // 英文版：最窄的手機走完六案和每條線索；畫面、無障礙名稱不殘留中文，通關卡文字不出邊，分享與 QR 指向英文入口；頁尾切換語言不動進度。
+  {
+    const {page,context}=await newPage({viewport:{width:320,height:568}});
+    async function englishOnly(){
+      const leaks=await page.evaluate(()=>{
+        const re=/[\p{Script=Han}，。：；「」（）！？、｜／]/u,toggle=document.getElementById('lang-toggle');
+        const labels=[...document.querySelectorAll('[aria-label],[alt],[title]')].filter(e=>e!==toggle).flatMap(e=>['aria-label','alt','title'].map(a=>e.getAttribute(a))).filter(Boolean);
+        // CSS 產生的字不在 innerText 裡，另外掃畫面上元素的 ::before／::after。
+        const generated=[...document.body.querySelectorAll('*')].filter(e=>e.getClientRects().length).flatMap(e=>['::before','::after'].map(p=>getComputedStyle(e,p).content)).filter(c=>c&&c!=='none'&&c!=='normal');
+        return [document.title,document.body.innerText.replace(toggle.innerText,''),...labels,...generated].filter(t=>re.test(t)).map(t=>t.match(/.{0,20}[\p{Script=Han}，。：；「」（）！？、｜／].{0,20}/u)[0]);
+      });
+      assert.deepEqual(leaks,[],'英文版畫面殘留中文');
+    }
+    await page.goto(base+'/?lang=en#home');await page.locator('#page-title').waitFor();
+    assert.equal(await page.evaluate(()=>document.documentElement.lang),'en');
+    assert.equal(await page.locator('#lang-toggle').innerText(),'中文');
+    await englishOnly();await noOverflow(page);
+    // 英文刊頭不往下推：放不下一行就在膠囊左邊排成兩行，高度和盾牌相當。
+    const masthead=async()=>page.evaluate(()=>{const b=document.querySelector('.brand'),r=document.createRange();r.selectNodeContents(b);const box=r.getBoundingClientRect(),cap=document.querySelector('.corner-controls').getBoundingClientRect();return {right:box.right,top:box.top,height:box.height,cap:cap.left};});
+    for(const width of [320,375,430]){
+      await page.setViewportSize({width,height:568});const m=await masthead();
+      assert.ok(m.right<=m.cap-4&&m.top<40&&m.height<=48,`英文刊頭要排在膠囊左邊、不往下推 ${width}: ${JSON.stringify(m)}`);
+      await musicClearOfContent(page);
+    }
+    const pushed=await page.addStyleTag({content:"html[lang='en'] .brand{padding-top:32px}"});
+    await assert.rejects(async()=>{const m=await masthead();assert.ok(m.top<40,'英文刊頭被往下推');},/往下推/,'已知錯誤：刊頭被推下去必須被抓到');
+    await pushed.evaluate(e=>e.remove());
+    await page.setViewportSize({width:320,height:568});
+    await page.evaluate(()=>{const s=document.createElement('span');s.id='test-leak';s.textContent='殘留';document.getElementById('screen').append(s);});
+    await assert.rejects(englishOnly,/殘留中文/,'已知錯誤：英文畫面混入中文必須被抓到');
+    await page.evaluate(()=>document.getElementById('test-leak').remove());
+    await page.evaluate(()=>document.getElementById('lang-toggle').classList.add('test-leak-css'));await page.addStyleTag({content:".test-leak-css:after{content:'點這裡'}"});
+    await assert.rejects(englishOnly,/殘留中文/,'已知錯誤：CSS 產生的中文必須被抓到');
+    await page.evaluate(()=>document.getElementById('lang-toggle').classList.remove('test-leak-css'));
+    // 從沒帶參數的中文首頁切到英文：網址加上 ?lang=en，其他參數保留。
+    await page.goto(base+'/?from=line#home');await page.locator('#page-title').waitFor();
+    assert.equal(await page.locator('#lang-toggle').innerText(),'EN');
+    await page.locator('#lang-toggle').click();await page.waitForFunction(()=>document.documentElement.lang==='en');
+    assert.equal(await page.evaluate(()=>location.search),'?from=line&lang=en');await englishOnly();
+    await page.getByRole('link',{name:'Start investigating',exact:true}).click();
+    const enCases=await page.evaluate(()=>SCENARIOS);
+    for(const [i,c] of enCases.entries()){
+      await hashIs(page,`#case/${c.id}`);await englishOnly();await noOverflow(page);
+      assert.equal(await page.locator('.message-text').innerText(),c.segments.map(s=>s.text).join(''));
+      await page.locator(`#verdict-${i%3}`).check();
+      assert.equal(await page.locator('#reply-draft').innerText(),`I think it's "${(await page.evaluate(()=>VERDICTS))[i%3]}"`);
+      await page.locator('#submit-case').click();await hashIs(page,`#review/${c.id}`);
+      await page.locator('#choice-feedback').waitFor({state:'visible'});assert.equal(await page.locator('#choice-feedback').innerText(),c.feedback[i%3]);
+      if(i===0){
+        // 解析頁中途切換：停在同一案、進度不變、聊天室不重播進場動畫，再切回英文。
+        const kept=await page.evaluate(()=>JSON.stringify(state));
+        await page.locator('#lang-toggle').click();await page.waitForFunction(()=>document.documentElement.lang==='zh-Hant-TW');
+        assert.equal(await page.evaluate(()=>location.hash),`#review/${c.id}`);assert.equal(await page.evaluate(()=>JSON.stringify(state)),kept,'中途切換語言不可動進度');
+        assert.equal(await page.locator('.review.shown').count(),1,'切換語言不重播解析動畫');assert.equal(await page.locator('#lang-toggle').innerText(),'EN');
+        await musicClearOfContent(page);
+        await page.locator('#lang-toggle').click();await page.waitForFunction(()=>document.documentElement.lang==='en');
+      }
+      while((await page.locator('#next-action').innerText()).startsWith('See clue ')){
+        await page.locator('#next-action').click();assert.equal(await page.locator('.clue-note:visible').count(),1);
+        await englishOnly();await noOverflow(page);
+      }
+      assert.equal(await page.locator('#clue-count').innerText(),'All clues in this case collected ✓');
+      assert.equal(await page.locator('#next-action').innerText(),i===5?'Get my card →':'Next case →');
+      await page.locator('#next-action').click();
+    }
+    await hashIs(page,'#finish');
+    await page.waitForFunction(()=>{const img=document.getElementById('finish-card');return img.complete&&img.naturalWidth>0&&img.src===cardData&&SEAL.complete;});
+    await englishOnly();for(const width of [320,375,430])await page.setViewportSize({width,height:812}),await noOverflow(page);
+    const enPersona=await page.evaluate(()=>persona());
+    assert.ok((await page.evaluate(()=>Object.values(PERSONA_TEXT.en).concat(BIAS_TEXT.en,TOP_TEXT.en))).includes(enPersona),'英文版給英文稱號');
+    // 卡片左右留白內不可有字：英文稱號與角度名較長，要縮到邊界內（徽章所在的右下角除外）。
+    const margins=await page.evaluate(async()=>{
+      const count=source=>{const c=document.createElement('canvas');c.width=1080;c.height=1570;const ctx=c.getContext('2d');ctx.drawImage(source,0,0);let n=0;for(const [x0,x1] of [[0,94],[986,1080]]){const d=ctx.getImageData(x0,100,x1-x0,1200).data;for(let i=0;i<d.length;i+=4)if(Math.max(d[i],d[i+1],d[i+2])<180)n++;}return n;};
+      const bad=cardCanvas(false,false);const ctx=bad.getContext('2d');ctx.fillStyle='#17231d';ctx.font='900 150px serif';ctx.fillText('Overflowing title text',96,502);
+      return {card:count(document.getElementById('finish-card')),bad:count(bad)};
+    });
+    const inside=n=>assert.equal(n,0,'通關卡文字超出左右留白');
+    // 最高分時，英文分數列的右緣也不能碰到徽章。
+    const scoreGap=await page.evaluate(()=>{const ctx=document.createElement('canvas').getContext('2d'),f=(w,s)=>`${w} ${s}px "Noto Serif TC",serif`,m=(t,w,s)=>{ctx.font=f(w,s);return ctx.measureText(t).width;};const {x,y,size,angle}=SEAL_LAYOUT,extent=size/2*(Math.abs(Math.cos(angle*Math.PI/180))+Math.abs(Math.sin(angle*Math.PI/180)));return x+size/2-extent-(96+m(ui.cardScore,700,60)+24+m('600',900,124)+12+m(ui.cardMax,700,56));});
+    assert.ok(scoreGap>=8,`英文分數列太靠近徽章 ${scoreGap}`);
+    inside(margins.card);assert.throws(()=>inside(margins.bad),/超出/,'已知錯誤：稱號出邊必須被抓到');
+    const enDecoded=await page.evaluate(async()=>(await new BarcodeDetector({formats:['qr_code']}).detect(await createImageBitmap(shareFile))).map(x=>x.rawValue));
+    assert.deepEqual(enDecoded,[await page.evaluate(()=>GAME_URL+'?lang=en')],'英文海報 QR 要解出英文入口');
+    await page.evaluate(()=>Object.defineProperty(navigator,'share',{configurable:true,value:undefined}));
+    await context.grantPermissions(['clipboard-read','clipboard-write']);
+    await page.locator('#share-card').click();await page.waitForFunction(()=>document.getElementById('share-status').textContent==='Share text copied.');
+    const enCopied=await page.evaluate(()=>navigator.clipboard.readText());
+    assert.equal(enCopied.split('\n').length,3);assert.ok(enCopied.includes(enPersona)&&enCopied.includes('/600'));assert.ok(enCopied.endsWith('?lang=en'),'英文分享文字帶英文入口');assert.ok(!/[\p{Script=Han}]/u.test(enCopied));
+    const enDownload=page.waitForEvent('download');await page.locator('#save-card').click();
+    assert.equal((await enDownload).suggestedFilename(),`Tea-Fact-Check-Bureau-${enPersona.replace(/\s+/g,'-')}.png`);
+    await page.screenshot({path:`${artifactDir}/finish-english-mobile.png`,fullPage:true});
+    // 切回中文：進度與通關頁都留著，網址只拿掉 lang、其他參數保留；再切回英文，網址帶回參數，重新整理仍是英文。
+    const before=await page.evaluate(()=>JSON.stringify(state));
+    await page.locator('#lang-toggle').click();
+    await page.waitForFunction(()=>document.documentElement.lang==='zh-Hant-TW'&&location.search==='?from=line'&&location.hash==='#finish');
+    assert.equal(await page.evaluate(()=>JSON.stringify(state)),before,'切換語言不可動進度');
+    assert.ok((await page.evaluate(()=>Object.values(PERSONAS).concat(BIAS_PERSONAS,TOP_PERSONA))).includes(await page.evaluate(()=>persona())),'切回中文後稱號是中文');
+    assert.ok((await page.locator('#finish-card').getAttribute('alt')).startsWith('我的調查員類型'));
+    assert.equal(await page.evaluate(()=>document.activeElement.id),'lang-toggle','切換後焦點留在語言按鈕');
+    await page.locator('#lang-toggle').click();await page.waitForFunction(()=>location.search==='?from=line&lang=en'&&document.documentElement.lang==='en');
+    await page.reload();await page.locator('#finish-card').waitFor();assert.equal(await page.evaluate(()=>lang),'en');await englishOnly();
+    await page.locator('#restart-game').click();await hashIs(page,'#home');assert.equal(await page.evaluate(()=>location.search),'?from=line&lang=en','重玩仍是英文');
+    await page.screenshot({path:`${artifactDir}/home-english-mobile.png`});
+    await context.close();
+  }
+  reports.push('英文版 320px 走完六案與各線索、無殘留中文、通關卡不出邊、英文 QR／分享／檔名、切換語言保留進度與網址');
   assert.deepEqual(failures,[],'瀏覽器執行錯誤');
   console.log('PASS：'+reports.join('；')+'。\n截圖與實際 PNG：'+artifactDir);
 }finally{await browser.close();}

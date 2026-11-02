@@ -20,7 +20,7 @@ function validate(list){
     for(const key of ['title','context','from','time','finding','angle','todo'])assert.ok(c[key]?.trim(),`${c.id} 缺 ${key}`);
     assert.ok(/^\S+群組 \(\d+\)$/.test(c.context)||c.context===c.from,`${c.id} 的 context 是群組名加人數，私訊寫對方名字`);
     assert.match(c.time,/^([01]\d|2[0-3]):[0-5]\d$/,`${c.id} 的時間要是 HH:MM`);
-    assert.ok(avatars.includes(c.from),`${c.id} 的傳訊人要有名字和頭像`);
+    assert.ok(avatars.includes(c.avatar)&&c.avatar===c.from,`${c.id} 的傳訊人要有名字和頭像`);
     assert.ok(Number.isInteger(c.answer)&&c.answer>=0&&c.answer<verdicts.length,`${c.id} 缺調查局看法`);
     const clues=c.segments.filter(s=>s.id);
     assert.ok(clues.length>=2&&clues.length<=4,'每案維持短流程');
@@ -88,7 +88,49 @@ const gameUrl=evaluate('GAME_URL'),qr=evaluate('qrMatrix(GAME_URL)');
 assert.equal(new URL(gameUrl).protocol,'https:');assert.ok(!/localhost|127\.0\.0\.1/.test(gameUrl),'QR 不可指向本機');
 assert.ok(qr&&qr.length>=21&&qr.every(line=>line.length===qr.length),'入口網址要放得進 QR');
 assert.equal(evaluate('qrMatrix("x".repeat(200))'),null,'放不下的內容不產生 QR');
-function checkTodoHeading(source){assert.ok(source.includes("h('h2',{class:'todo-title'},'所以可以這樣做')"),'建議做法缺獨立標題');const rule=source.match(/\.feedback \.todo-title\{([^}]*)\}/)?.[1]||'';assert.ok(rule&&!/font|color|line-height/.test(rule),'建議標題必須沿用共用標題樣式');}
+assert.ok(evaluate('qrMatrix(GAME_URL+"?lang=en")'),'英文入口網址要放得進 QR');
+// 英文版：由同一份 CASES 展開，不能殘留中文字或全形標點；片段接縫要有空格；稱讚的表情與中文相同；兩種語言的介面文字鍵一致。
+const CJK=/[\p{Script=Han}，。：；「」（）！？、｜／]/u;
+const emojis=f=>(f.match(/\p{Extended_Pictographic}/gu)||[]).join('');
+const uiOf=l=>evaluate(`Object.fromEntries(Object.entries(UI.${l}).map(([k,v])=>[k,typeof v==='function'?v('Sample',2,['Axis 80']):v]))`);
+function validateEnglish(list,zhList,ui,uiZh,personaMap){
+  assert.equal(list.length,zhList.length,'英文版缺案件');
+  for(const [i,c] of list.entries()){
+    const z=zhList[i];
+    for(const key of ['title','context','from','angle','finding','todo'])assert.ok(c[key]?.trim(),`${c.id} 缺英文 ${key}`);
+    assert.ok(z.context===z.from?c.context===c.from:/^.+ \(\d+\)$/.test(c.context),`${c.id} 的英文聊天室名稱要和中文同型`);
+    const texts=[c.title,c.context,c.from,c.angle,c.finding,c.todo,...c.feedback,...c.segments.flatMap(s=>[s.text,s.hint||'']),...c.references.map(r=>r.label),...(c.attachment?[c.attachment.label,...c.attachment.lines]:[])];
+    for(const t of texts)assert.ok(!CJK.test(t),`${c.id} 英文殘留中文：${t}`);
+    c.segments.forEach((s,k)=>{const next=c.segments[k+1]?.text;if(next)assert.ok(!(/\S$/.test(s.text)&&/^[\p{L}\p{N}]/u.test(next)),`${c.id} 英文片段接縫缺空格：${s.text}|${next}`);});
+    assert.ok(!/ {2}| [,.;:!?]/.test(c.segments.map(s=>s.text).join('')),`${c.id} 英文片段接縫多了空格`);
+    assert.equal(new Set(c.feedback).size,verdicts.length,`${c.id} 英文回饋不可重複`);
+    c.feedback.forEach((f,k)=>{assert.ok(f.length<=64,`${c.id} 英文回饋必須是一句短話`);assert.equal(emojis(f),emojis(z.feedback[k]),`${c.id} 英文回饋的表情要和中文相同`);});
+  }
+  assert.equal(new Set(list.map(c=>c.angle)).size,list.length,'英文判斷角度不可重複');
+  for(const c of list)assert.ok(personaMap[c.angle]?.trim(),`${c.angle} 缺英文通關稱號`);
+  assert.deepEqual(Object.keys(ui).sort(),Object.keys(uiZh).sort(),'兩種語言的介面文字鍵要一致');
+  assert.deepEqual(Object.keys(ui.music).sort(),Object.keys(uiZh.music).sort(),'兩種語言的音樂文字鍵要一致');
+  for(const [k,v] of Object.entries(ui))if(!['switchTo','switchLabel'].includes(k))for(const t of [v].flat(2).flatMap(x=>typeof x==='object'?Object.values(x):[x]))assert.ok(!CJK.test(String(t)),`英文介面殘留中文：${k}`);
+}
+const enCases=evaluate('localize("en")'),enUi=uiOf('en'),zhUi=uiOf('zh'),enPersonas=evaluate('PERSONA_TEXT.en');
+validateEnglish(enCases,cases,enUi,zhUi,enPersonas);
+const enNames=Object.values(enPersonas).concat(evaluate('BIAS_TEXT.en'),evaluate('TOP_TEXT.en'));
+assert.equal(new Set(enNames).size,cases.length+4,'英文通關稱號不可重複');for(const t of enNames)assert.ok(!CJK.test(t),'英文稱號殘留中文');
+const enCjk=structuredClone(enCases);enCjk[1].title='午餐 tea';assert.throws(()=>validateEnglish(enCjk,cases,enUi,zhUi,enPersonas),/殘留中文/);
+const enSeam=structuredClone(enCases);enSeam[0].segments[2].text=enSeam[0].segments[2].text.trimStart();assert.throws(()=>validateEnglish(enSeam,cases,enUi,zhUi,enPersonas),/缺空格/);
+const enEmoji=structuredClone(enCases);enEmoji[3].feedback[1]=enEmoji[3].feedback[1].replace('🤔','👍');assert.throws(()=>validateEnglish(enEmoji,cases,enUi,zhUi,enPersonas),/表情/);
+const enUiMissing={...enUi};delete enUiMissing.restart;assert.throws(()=>validateEnglish(enCases,cases,enUiMissing,zhUi,enPersonas),/介面文字鍵/);
+const enPersonaMissing={...enPersonas};delete enPersonaMissing[enCases[5].angle];assert.throws(()=>validateEnglish(enCases,cases,enUi,zhUi,enPersonaMissing),/英文通關稱號/);
+// CSS 產生的字（::before／::after）不經過 UI，含中文的都要有 html[lang='en'] 的英文覆寫。
+function checkCssText(source){
+  for(const [,selector,value] of source.matchAll(/([^{}]+)\{[^{}]*content:'([^']*)'/g)){
+    if(!/\p{Script=Han}/u.test(value)||selector.includes("[lang='en']"))continue;
+    const override=source.match(new RegExp(`html\\[lang='en'\\] ${selector.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\{content:'([^']*)'`))?.[1];
+    assert.ok(override&&!/\p{Script=Han}/u.test(override),`CSS 文字缺英文版：${selector.trim()}`);
+  }
+}
+checkCssText(html);assert.throws(()=>checkCssText(html.replace("html[lang='en'] .clue.coach:after{content:'👆 Tap here'}","")),/CSS 文字缺英文版/);
+function checkTodoHeading(source){assert.ok(source.includes("h('h2',{class:'todo-title'},ui.todo)")&&source.includes("todo:'所以可以這樣做'"),'建議做法缺獨立標題');const rule=source.match(/\.feedback \.todo-title\{([^}]*)\}/)?.[1]||'';assert.ok(rule&&!/font|color|line-height/.test(rule),'建議標題必須沿用共用標題樣式');}
 checkTodoHeading(html);assert.throws(()=>checkTodoHeading(html.replace('.feedback .todo-title{','.feedback .todo-title{font-family:var(--sans);')),/共用標題樣式/);assert.throws(()=>checkTodoHeading(html.replace("h('h2',{class:'todo-title'}","h('strong',{class:'todo-title'}")),/缺獨立標題/);
 // 線索是行內文字，不能撐高行距；觸控高度靠不上色的上下內距補足。
 function checkTarget(source){const rule=source.match(/\.clue\s*\{([^}]*)\}/)?.[1]||'';for(const part of ['padding:13px 0','background-clip:content-box'])assert.ok(rule.includes(part),`點擊區缺 ${part}`);assert.ok(!rule.includes('inline-block'),'點擊區不可撐高行距');}
@@ -103,7 +145,7 @@ function checkCollection(source){
   assert.ok(source.includes('.clue.locked{background-color:transparent'),'未揭示片段不能是黃色');
   assert.ok(source.includes('animation:clue-plus 1.2s')&&source.includes('animation-delay:4.25s'),'缺少加號動畫或回覆順序');
   assert.ok(source.includes('!p.active&&cluesOf(c).find')&&source.includes('.message-text.reading{color:'),'解說開著時要聚焦在當前線索');
-  assert.ok(source.includes('toggleClue(c,s.id,true)')&&source.includes("id:'skip-clues'")&&source.includes('看線索 ${seen+1}／${total} →'),'缺少底部導覽按鈕或跳過入口');
+  assert.ok(source.includes('toggleClue(c,s.id,true)')&&source.includes("id:'skip-clues'")&&source.includes('看線索 ${n}／${total} →'),'缺少底部導覽按鈕或跳過入口');
 }
 checkCollection(html);
 assert.throws(()=>checkCollection(html.replace('!clueAvailable(c,id)','false')),/未揭示線索/);
@@ -142,4 +184,4 @@ assert.ok(avatarBytes.length>0&&avatarBytes.length<20_000,'簡化頭像須小於
 checkSeal(html);assert.throws(()=>checkSeal(html.replace('if(seal)drawSeal(ctx)','')),/畫進/,'拿掉蓋章繪製必須被抓到');
 const sealBytes=readFileSync(new URL('../assets/images/tea-bureau-seal.webp',import.meta.url));
 assert.ok(sealBytes.length>0&&sealBytes.length<100_000,'通關章須存在且小於 100 KB');
-console.log('PASS：六案來源分流、18 組回饋與調查局看法、六個通關稱號、QR 入口、順序入口、原答案不可覆蓋、存檔恢復／損壞／不可用；音樂預設關閉、延遲載入與檔案大小；通關章資源與 PNG 繪製；已知錯誤對照會失敗。');
+console.log('PASS：六案來源分流、18 組回饋與調查局看法、六個通關稱號、英文版文字完整（無殘留中文、接縫空格、表情、介面鍵）、QR 入口、順序入口、原答案不可覆蓋、存檔恢復／損壞／不可用；音樂預設關閉、延遲載入與檔案大小；通關章資源與 PNG 繪製；已知錯誤對照會失敗。');
